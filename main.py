@@ -30,7 +30,6 @@ def main():
         
         def shuffle(self):
             random.shuffle(self)
-            print("Deck shuffled!")
         
         def deal(self, player, times=1):
             for i in range(times):
@@ -70,27 +69,27 @@ def main():
         return True
 
     def check_coup(player, target):
-        if len(player.cards) <= 0:
+        if check_player_in(player) == False:
             return False
-        if len(target.cards) <= 0:
+        if check_player_in(target) == False:
             return False
         if player.coins < 7:
             return False
         return True
 
     def check_assassinate(player, target):
-        if len(player.cards) <= 0:
+        if check_player_in(player) == False:
             return False
-        if len(target.cards) <= 0:
+        if check_player_in(target) == False:
             return False
         if player.coins < 3:
             return False
         return True
 
     def check_steal(player, target):
-        if len(player.cards) <= 0:
+        if check_player_in(player) == False:
             return False
-        if len(target.cards) <= 0:
+        if check_player_in(target) == False:
             return False
         if player.coins < 1:
             return False
@@ -99,8 +98,6 @@ def main():
     def get_actions(current_player_index, players):
         actions = []
         player = players[current_player_index]
-        if not check_player_in(player):
-            return actions
         force_coup = False
         if player.coins >= 10:
             force_coup = True
@@ -112,20 +109,18 @@ def main():
             for i in range(len(players)):
                 if i == current_player_index:
                     continue
-                if check_player_in(players[i]): # double checking player is in, this is already checked in individual action check functions
-                    if check_coup(player, players[i]):
-                        actions.append(Action("Coup", player, players[i]))
-                    if check_assassinate(player, players[i]):
-                        actions.append(Action("Assassinate", player, players[i]))
-                    if check_steal(player, players[i]):
-                        actions.append(Action("Steal", player, players[i]))
+                if check_coup(player, players[i]):
+                    actions.append(Action("Coup", player, players[i]))
+                if check_assassinate(player, players[i]):
+                    actions.append(Action("Assassinate", player, players[i]))
+                if check_steal(player, players[i]):
+                    actions.append(Action("Steal", player, players[i]))
         else:
             for i in range(len(players)):
                 if i == current_player_index:
                     continue
-                if check_player_in(players[i]): # double checking player is in, this is already checked in individual action check functions
-                    if check_coup(player, players[i]):
-                        actions.append(Action("Coup", player, players[i]))
+                if check_coup(player, players[i]):
+                    actions.append(Action("Coup", player, players[i]))
 
         return actions
 
@@ -162,14 +157,14 @@ def main():
     def get_counteractions(players, action):
         counteractions = []
         player = action.player
-        if not check_player_in(player): # This should never happen
-            return False
         counteractions.append(None)
         for i in range(len(players)):
             if i == action.player.id:
                 continue
             if action.name == "Foreign Aid":
-                counteractions.append(Counteraction(action, players[i], "Duke"))
+                if (check_player_in(players[i])):
+                    counteractions.append(Counteraction(action, players[i], "Duke"))
+        # It has already been checked that the action's target is still in upon creating the action
         if action.name == "Assassinate":
             counteractions.append(Counteraction(action, action.target, "Contessa"))
         elif action.name == "Steal":
@@ -195,15 +190,24 @@ def main():
     def get_action_challenges(action, players):
         action_challenges = []
         player = action.player
-        if not check_player_in(player): # This should never happen
-            return False
         action_challenges.append(None)
         for i in range(len(players)):
             if i == action.player.id:
                 continue
             if action.name == "Tax" or action.name == "Assassinate" or action.name == "Steal" or action.name == "Exchange":
-                action_challenges.append(ActionChallenge(action, players[i]))
+                if (check_player_in(players[i])):
+                    action_challenges.append(ActionChallenge(action, players[i]))
         return action_challenges
+
+    def get_counteraction_challenges(counteraction, players):
+        counteraction_challenges = []
+        counteraction_challenges.append(None)
+        for i in range(len(players)):
+            if i == counteraction.counteractor.id:
+                continue
+            if check_player_in(players[i]):
+                counteraction_challenges.append(CounteractionChallenge(counteraction, players[i]))
+        return counteraction_challenges
 
     class ActionChallenge(object):
         def __init__(self, action, challenger):
@@ -211,6 +215,13 @@ def main():
             self.challenger = challenger
         def __repr__(self):
             return self.challenger.name + " " + "challenges " + "'" + self.action.__repr__() + "'"
+    
+    class CounteractionChallenge(object):
+        def __init__(self, counteraction, challenger):
+            self.counteraction = counteraction
+            self.challenger = challenger
+        def __repr__(self):
+            return self.challenger.name + " " + "challenges " + "'" + self.counteraction.__repr__() + "'"
 
     class Counteraction(object):
         def __init__(self, action, counteractor, claim):
@@ -223,7 +234,7 @@ def main():
     class Action(object):
         def __init__(self, action_name, player, target=None):
 
-            action_character = "None"
+            action_character = "General Action"
             blocked_by = []
 
             if action_name == "Foreign Aid":
@@ -288,52 +299,68 @@ def main():
     num_players = 3
     for player_num in range(num_players):
         name = "Player " + str(player_num)
-        players.append(Player(player_num, name))
+        players.append(Player(player_num, name)) # player.id will always match player's index in players
         deck.deal(players[player_num], times=2)
 
     count = 0
     while not is_winner(players):
+        if check_player_in(players[count]):
+            actions = get_actions(count, players)
+            action = random.choice(actions)
+            print(actions)
+            print(players[count].name + " plays '" + action.__repr__() + "' claiming " + action.action_character)
 
-        actions = get_actions(count, players)
-        action = random.choice(actions)
-        print(actions)
-        print(players[count].name + " plays '" + action.__repr__() + "' claiming " + action.action_character)
-
-        action_challenges = get_action_challenges(action, players)
-        action_challenge = random.choice(action_challenges)
-        print(action_challenges)
-        print(action_challenge)
-        if not (action_challenge == None):
-            winner, loser = challenge_action(action_challenge.action, action_challenge.challenger) # handle challenge
-            if winner.id == action.player.id: # if the winner is the one who was challenged
-                card_index = 0
-                if winner.cards[1].name == action.action_character:
-                    card_index = 1
-                print(winner.name + " wins with " + winner.cards[card_index].name)
-                action.execute(success=True)
-                deck.append(winner.cards.pop(card_index))
-                deck.shuffle()
-                deck.deal(winner)
-                loser.lose_influence() # The loser can choose which card to turn over
-            else: # the winner is the one who challenged the action
-                action.execute(success=False)
-                print(winner.name + " wins!")
-                loser.lose_influence() # Note: the loser has chosen a card to turn over to prove the challenge. Loser the same card that they chose to turn over
-        else:
-            counteractions = get_counteractions(players, action)
-            print(counteractions)
-            counteraction = random.choice(counteractions)
-            print(counteraction)
-            if counteraction == None: # the action went unchallenged so if no one counteracts the action succeeds 
-                action.execute(success=True)
+            action_challenges = get_action_challenges(action, players)
+            action_challenge = random.choice(action_challenges)
+            print(action_challenges)
+            print(action_challenge)
+            if not (action_challenge == None):
+                winner, loser = challenge_action(action_challenge.action, action_challenge.challenger) # handle challenge
+                if winner.id == action.player.id: # if the winner is the one who was challenged
+                    card_index = 0
+                    if winner.cards[1].name == action.action_character:
+                        card_index = 1
+                    print(winner.name + " wins with " + winner.cards[card_index].name)
+                    action.execute(success=True)
+                    deck.append(winner.cards.pop(card_index))
+                    deck.shuffle()
+                    deck.deal(winner)
+                    loser.lose_influence() # The loser can choose which card to turn over
+                else: # the winner is the one who challenged the action
+                    print(winner.name + " wins!")
+                    loser.lose_influence() # Note: the loser has chosen a card to turn over to prove the challenge. Loser the same card that they chose to turn over
             else:
-                if not (get_counteraction_challenges == None):
-                    pass # handle challenge: if counteractor wins challenger loses influence 
+                counteractions = get_counteractions(players, action)
+                print(counteractions)
+                counteraction = random.choice(counteractions)
+                print(counteraction)
+                if counteraction == None: # the action went unchallenged so if no one counteracts the action succeeds 
+                    action.execute(success=True)
                 else:
-                    pass
+                    counteraction_challenges = get_counteraction_challenges(counteraction, players)
+                    counteraction_challenge = random.choice(counteraction_challenges)
+                    print(counteraction_challenges)
+                    print(counteraction_challenge)
+                    if not (counteraction_challenge == None):
+                        winner, loser = challenge_counteraction(counteraction_challenge.counteraction, counteraction_challenge.challenger) # handle challenge: if counteractor wins challenger loses influence 
+                        #if winner is counteractor
+                        if winner.id == counteraction_challenge.counteraction.counteractor:
+                            card_index = 0
+                            if winner.cards[1].name == counteraction_challenge.counteraction.claim:
+                                card_index = 1
+                            deck.append(winner.cards.pop(card_index))
+                            deck.shuffle()
+                            deck.deal(winner)
+                            action.execute(success=False)
+                            counteraction_challenge.challenger.lose_influence()
+                        else: # if the winner is the challenger
+                            action.execute(success=True)
+                            counteraction_challenge.counteraction.counteractor.lose_influence()
 
-
+                    else: # If no one counters the counteraction it counteracts the action
+                        action.execute(success=False)
         break
+        count += 1
 
 if __name__ == "__main__":
     main()
