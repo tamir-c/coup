@@ -91,7 +91,7 @@ def main():
             return False
         if check_player_in(target) == False:
             return False
-        if player.coins < 1:
+        if target.coins < 1:
             return False
         return True
     
@@ -304,11 +304,16 @@ def main():
 
     count = 0
     while not is_winner(players):
-        if check_player_in(players[count]):
-            actions = get_actions(count, players)
+
+        turn = count % num_players
+        if check_player_in(players[turn]):
+            for player in players:
+                print(player.name, player.coins, player.num_influences())
+
+            actions = get_actions(turn, players)
             action = random.choice(actions)
             print(actions)
-            print(players[count].name + " plays '" + action.__repr__() + "' claiming " + action.action_character)
+            print(players[turn].name + " plays '" + action.__repr__() + "' claiming " + action.action_character)
 
             action_challenges = get_action_challenges(action, players)
             action_challenge = random.choice(action_challenges)
@@ -359,8 +364,11 @@ def main():
 
                     else: # If no one counters the counteraction it counteracts the action
                         action.execute(success=False)
-        break
+        
         count += 1
+    
+    for player in players:
+        print(player.name, player.coins, player.num_influences())
 
 if __name__ == "__main__":
     main()
