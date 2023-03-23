@@ -2,18 +2,10 @@ import random
 from game import *
 import time
 
-def main():
 
-    num_players = 2
-    deck = Deck()
-    deck.shuffle()
-    players = []
-    for player_num in range(num_players):
-        name = "Player " + str(player_num)
-        players.append(Player(player_num, num_players, name)) # player.id will always match player's index in players
-        deck.deal(players[player_num], times=2)
+def game(num_players, players, deck, count):
 
-    count = 0
+
     while not is_winner(players):
 
         turn = count % num_players
@@ -97,6 +89,23 @@ def main():
         count += 1
     
     print("\n" + players[get_winner(players)].name + " wins the game!!!")
+
+def main():
+    new = False
+    if new:
+        num_players = 2
+        deck = Deck()
+        deck.shuffle()
+        players = []
+        count = 0 # defines who's turn it is
+        for player_num in range(num_players):
+            players.append(Player(player_num, num_players)) # player.id will always match player's index in players
+            deck.deal(players[player_num], times=2)
+        game(num_players, players, deck, count)
+    else:
+        string = "2-6-0-0-1-0-9-4-1-3-0-1-0-0-0-0-2"
+        num_players, players, deck, count = load_game_state(string)
+        game(num_players, players, deck, count)
 
 if __name__ == "__main__":
     main()

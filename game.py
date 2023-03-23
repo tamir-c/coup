@@ -33,15 +33,27 @@ class Deck(list):
     def deal(self, player, times=1):
         for i in range(times):
             player.cards.append(self.pop(0))
+    
+    def deal_character(self, player, type):
+        for i in range(len(self)):
+            if self[i].type == type:
+                player.cards.append(self.pop(i))
+                break
+            
 
 class Player(object):
-    def __init__(self, id, num_players, name=None):
+    def __init__(self, id, num_players, name=None, coins=None):
         self.id = id
         self.name = name
-        if num_players == 2:
-            self.coins = 1
+        if self.name == None:
+            self.name = "Player " + str(self.id)
+        if coins==None:
+            if num_players == 2:
+                self.coins = 1
+            else:
+                self.coins = 2
         else:
-            self.coins = 2
+            self.coins = coins
         self.cards = []
 
     def __repr__(self):
@@ -362,3 +374,26 @@ def get_winner(players):
                 return player.id
     else:
         return -1
+    
+def load_game_state(string):
+    p = string.split("-")
+    num_players = int(p[0])
+    players = []
+    deck = Deck()
+    for i in range(num_players):
+        coins = p[1+5*i]
+        player = Player(i, num_players)
+        deck.deal_character(player, int(p[2+5*i]))
+        if p[3+5*i] == 0:
+            player.cards[0].showing = False
+        else:
+            player.cards[0].showing = True
+        deck.deal_character(player, int(p[4+5*i]))
+        if p[5+5*i] == 0:
+            player.cards[0].showing = False
+        else:
+            player.cards[0].showing = True
+        players.append(player)
+    
+    count = int(p[num_players*5 + 1])
+    return num_players, players, deck, count
