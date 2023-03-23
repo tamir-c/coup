@@ -24,35 +24,43 @@ def main():
             print("\n" + players[turn].name + "'s turn!")
             actions = get_actions(turn, players, deck)
             action = choice(actions, "Please choose action from:")
-            # print("Possible actions:")
-            # print(actions)
+            print("Possible actions:")
+            print(actions)
             print("Action taken: " + players[turn].name + " plays '" + action.__repr__() + "' claiming " + action.action_character)
 
             action_challenges = get_action_challenges(action, players)
             action_challenge = choice(action_challenges, "Please choose action challenge from:")
-            # print("Possible challenges:")
-            # print(action_challenges)
+            print("Possible challenges:")
+            print(action_challenges)
             print("Challenge taken:")
             print(action_challenge)
             if not (action_challenge == None):
                 winner, loser = challenge_action(action_challenge.action, action_challenge.challenger) # handle challenge
                 if winner.id == action.player.id: # if the winner is the one who was challenged
                     card_index = 0
-                    if winner.cards[1].name == action.action_character:
+                    if winner.cards[1].name == action.action_character and winner.cards[1].showing == False:
                         card_index = 1
                     print(winner.name + " wins the challenge with " + winner.cards[card_index].name)
                     action.execute(success=True)
                     deck.append(winner.cards.pop(card_index))
                     deck.shuffle()
                     deck.deal(winner)
-                    loser.lose_influence() # The loser can choose which card to turn over
-                else: # the winner is the one who challenged the action
+                    cardToLose = choice(loser.get_active_cards(), "Please choose card to lose from: ")
+                    card_index = 0
+                    if loser.cards[1] == cardToLose:
+                        card_index = 1
+                    loser.lose_influence(card_index) # The loser can choose which card to turn over
+                else: # the winner is the one who challenged the action. The action fails so the actor loses an influence and play continues
                     print(winner.name + " wins the challenge because " + loser.name + " does not have " + action.action_character)
-                    loser.lose_influence() # Note: the loser has chosen a card to turn over to prove the challenge. Loser the same card that they chose to turn over
+                    cardToLose = choice(loser.get_active_cards(), "Please choose card to lose from: ")
+                    card_index = 0
+                    if loser.cards[1] == cardToLose:
+                        card_index = 1
+                    loser.lose_influence(card_index)
             else:
                 counteractions = get_counteractions(players, action)
-                # print("Possible counteractions:")
-                # print(counteractions)
+                print("Possible counteractions:")
+                print(counteractions)
                 counteraction = choice(counteractions, "Please choose counteraction from:")
                 print("Counteraction taken: ")
                 print(counteraction)

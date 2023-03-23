@@ -1,22 +1,5 @@
 import random
 
-def choice(list, message="Please choose from: ", rand=True):
-    length = len(list)
-    if length == 0:
-        return None
-    if length == 1:
-        return list[0]
-    if rand:
-        return random.choice(list)
-    print(message)
-    for i in range(length):
-        print(str(i) + ": " + list[i].__repr__())
-    while True:
-        c = input()
-        if c.isdigit():
-            if int(c) in range(length):
-                return list[int(c)]
-
 class Card(object):
         def __init__(self, type):
             self.type = type
@@ -71,9 +54,17 @@ class Player(object):
         if self.cards[1].showing:
             count -= 1
         return count
+    
+    def get_active_cards(self):
+        active_cards = []
+        for c in self.cards:
+            if c.showing == False:
+                active_cards.append(c)
+        return active_cards
+
 
     # Removes one the player's influences where card_id is the preference of which card the player loses
-    def lose_influence(self):
+    def lose_influence(self, infToLose=0):
         inf = self.num_influences()
         if inf == 1:
             if self.cards[0].showing:
@@ -81,8 +72,9 @@ class Player(object):
             else:
                 self.cards[0].showing = True
         else:
-            lose = choice(self.cards, "Please choose card to lose and reval to the rest of the players:")
-            lose.showing = True
+            # lose = choice(self.cards, "Please choose card to lose and reval to the rest of the players:")
+            # lose.showing = True
+            self.cards[infToLose].showing = True
         print(self.name + " loses an influence!")
 
 class ActionChallenge(object):
@@ -161,6 +153,23 @@ class Action(object):
         elif self.name == "Exchange":
             exchange(self.player, self.deck, success)
 
+def choice(list, message="Please choose from: ", rand=True):
+    length = len(list)
+    if length == 0:
+        return None
+    if length == 1:
+        return list[0]
+    if rand:
+        return random.choice(list)
+    print(message)
+    for i in range(length):
+        print(str(i) + ": " + list[i].__repr__())
+    while True:
+        c = input()
+        if c.isdigit():
+            if int(c) in range(length):
+                return list[int(c)]
+
 def check_player_in(player):
     if player.num_influences() <= 0:
         return False
@@ -204,6 +213,7 @@ def get_actions(current_player_index, players, deck):
         actions.append(Action("Foreign Aid", player, deck))
         actions.append(Action("Tax", player, deck))
         actions.append(Action("Exchange", player, deck))
+        # Each check_[action] function verifies the actor and target are in, and that the game state allows for this action to occur
         for i in range(len(players)):
             if i == current_player_index:
                 continue
@@ -256,30 +266,31 @@ def steal(player, target, success):
         player.coins += coins_to_take
 def exchange(player, deck, success):
     if success:
-        print(player.name + " exchanges two cards from the deck!")
-        deck.deal(player, 2)
-        exchangable = []
-        for card in player.cards:
-            if card.showing == False:
-                exchangable.append(card)
-        if len(exchangable) == 3:
-            c0 = choice(exchangable, "Please choose one card to keep:")
-            c1 = player.cards[1]
-            exchangable.remove(c0)
-            if player.cards[0].showing:
-                c1 = c0
-                c0 = player.cards[0]
-        elif len(exchangable) == 4:
-            c0 = choice(exchangable, "Please choose 1st out of 2 cards to keep:")
-            exchangable.remove(c0)
-            c1 = choice(exchangable, "Please choose 2nd out of 2 cards to keep:")
-            exchangable.remove(c1)
-        player.cards = [c0, c1]
-        print(player.cards)
-        print(exchangable)
-        for c in exchangable:
-            deck.append(exchangable.pop(0))
-        deck.shuffle()
+        pass
+        # print(player.name + " exchanges two cards from the deck!")
+        # deck.deal(player, 2)
+        # exchangable = []
+        # for card in player.cards:
+        #     if card.showing == False:
+        #         exchangable.append(card)
+        # if len(exchangable) == 3:
+        #     c0 = choice(exchangable, "Please choose one card to keep:")
+        #     c1 = player.cards[1]
+        #     exchangable.remove(c0)
+        #     if player.cards[0].showing:
+        #         c1 = c0
+        #         c0 = player.cards[0]
+        # elif len(exchangable) == 4:
+        #     c0 = choice(exchangable, "Please choose 1st out of 2 cards to keep:")
+        #     exchangable.remove(c0)
+        #     c1 = choice(exchangable, "Please choose 2nd out of 2 cards to keep:")
+        #     exchangable.remove(c1)
+        # player.cards = [c0, c1]
+        # print(player.cards)
+        # print(exchangable)
+        # for c in exchangable:
+        #     deck.append(exchangable.pop(0))
+        # deck.shuffle()
 def get_counteractions(players, action):
     counteractions = []
     player = action.player
