@@ -1,5 +1,24 @@
 import random
 
+class State(object):
+    def __init__(self, state_string = "", num_players = 2):
+        if num_players <= 1 or num_players > 6:
+            num_players = 2
+        if state_string == "":    
+            self.num_players = num_players
+            self.players = []
+            self.deck = Deck()
+            self.deck.shuffle()
+            self.actor = 0
+            for i in range(self.num_players):
+                self.players.append(Player(i, self.num_players)) # player.id will always match player's index in players
+                self.deck.deal(self.players[i], times=2)
+        else:
+            self.num_players, self.players, self.deck, self.actor = load_game_state(state_string)
+
+    def increment_turn(self):
+        self.actor = (self.actor + 1) % self.num_players
+
 class Card(object):
         def __init__(self, type):
             self.type = type
@@ -112,27 +131,34 @@ class Counteraction(object):
         return self.counteractor.name + " blocks " + self.action.__repr__() + " claiming " + self.claim
 
 class Action(object):
+    # To do! FIX SELF.TYPE
     def __init__(self, action_name, player, deck, target=None):
 
         action_character = "General Action"
         blocked_by = []
+        self.type = 0
 
         if action_name == "Foreign Aid":
+            self.type = 1
             blocked_by.append("Duke")
 
         elif action_name == "Tax":
+            self.type = 2
             action_character = "Duke"
 
         elif action_name == "Assassinate":
+            self.type = 3
             action_character = "Assassin"
             blocked_by.append("Contessa")
 
         elif action_name == "Steal":
+            self.type = 4
             action_character = "Captain"
             blocked_by.append("Ambassador")
             blocked_by.append("Captain")
 
         elif action_name == "Exchange":
+            self.type = 5
             action_character = "Ambassador"
         
         self.name = action_name

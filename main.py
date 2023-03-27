@@ -1,26 +1,25 @@
 import random
 from game import *
 import time
+import copy
 
 
-def game(num_players, players, deck, count):
+def game(state):
+    while not is_winner(state.players):
 
-
-    while not is_winner(players):
-
-        turn = count % num_players
-        if check_player_in(players[turn]):
-            for player in players:
+        turn = state.actor
+        if check_player_in(state.players[turn]):
+            for player in state.players:
                 print(player.name, player.coins, player.num_influences(), player.cards, player.cards[0].showing, player.cards[1].showing)
 
-            print("\n" + players[turn].name + "'s turn!")
-            actions = get_actions(turn, players, deck)
+            print("\n" + state.players[turn].name + "'s turn!")
+            actions = get_actions(turn, state.players, state.deck)
             action = choice(actions, "Please choose action from:")
             print("Possible actions:")
             print(actions)
-            print("Action taken: " + players[turn].name + " plays '" + action.__repr__() + "' claiming " + action.action_character)
+            print("Action taken: " + state.players[turn].name + " plays '" + action.__repr__() + "' claiming " + action.action_character)
 
-            action_challenges = get_action_challenges(action, players)
+            action_challenges = get_action_challenges(action, state.players)
             action_challenge = choice(action_challenges, "Please choose action challenge from:")
             print("Possible challenges:")
             print(action_challenges)
@@ -34,9 +33,9 @@ def game(num_players, players, deck, count):
                         card_index = 1
                     print(winner.name + " wins the challenge with " + winner.cards[card_index].name)
                     action.execute(success=True)
-                    deck.append(winner.cards.pop(card_index))
-                    deck.shuffle()
-                    deck.deal(winner)
+                    state.deck.append(winner.cards.pop(card_index))
+                    state.deck.shuffle()
+                    state.deck.deal(winner)
                     cardToLose = choice(loser.get_active_cards(), "Please choose card to lose from: ")
                     card_index = 0
                     if loser.cards[1] == cardToLose:
@@ -50,7 +49,7 @@ def game(num_players, players, deck, count):
                         card_index = 1
                     loser.lose_influence(card_index)
             else:
-                counteractions = get_counteractions(players, action)
+                counteractions = get_counteractions(state.players, action)
                 print("Possible counteractions:")
                 print(counteractions)
                 counteraction = choice(counteractions, "Please choose counteraction from:")
@@ -59,7 +58,7 @@ def game(num_players, players, deck, count):
                 if counteraction == None: # the action went unchallenged so if no one counteracts the action succeeds 
                     action.execute(success=True)
                 else:
-                    counteraction_challenges = get_counteraction_challenges(counteraction, players)
+                    counteraction_challenges = get_counteraction_challenges(counteraction, state.players)
                     counteraction_challenge = choice(counteraction_challenges, "Please choose counteraction challenge from:")
                     # print("Possible challenges to counteraction:")
                     # print(counteraction_challenges)
@@ -73,9 +72,9 @@ def game(num_players, players, deck, count):
                             card_index = 0
                             if winner.cards[1].name == counteraction_challenge.counteraction.claim:
                                 card_index = 1
-                            deck.append(winner.cards.pop(card_index))
-                            deck.shuffle()
-                            deck.deal(winner)
+                            state.deck.append(winner.cards.pop(card_index))
+                            state.deck.shuffle()
+                            state.deck.deal(winner)
                             action.execute(success=False)
                             counteraction_challenge.challenger.lose_influence()
                         else: # if the winner is the challenger
@@ -86,26 +85,19 @@ def game(num_players, players, deck, count):
                     else: # If no one counters the counteraction it counteracts the action
                         action.execute(success=False)
         
-        count += 1
+        state.increment_turn()
     
-    print("\n" + players[get_winner(players)].name + " wins the game!!!")
+    print("\n" + state.players[get_winner(state.players)].name + " wins the game!!!")
 
 def main():
-    new = False
+    new = True
     if new:
-        num_players = 2
-        deck = Deck()
-        deck.shuffle()
-        players = []
-        count = 0 # defines who's turn it is
-        for player_num in range(num_players):
-            players.append(Player(player_num, num_players)) # player.id will always match player's index in players
-            deck.deal(players[player_num], times=2)
-        game(num_players, players, deck, count)
-    else:
-        string = "2-6-0-0-1-0-9-4-1-3-0-1-0-0-0-0-2"
-        num_players, players, deck, count = load_game_state(string)
-        game(num_players, players, deck, count)
+        s = State()
+        game(s)
+    else: # resume already existing game from state string - not a priority
+        pass
+        # string = "2-6-0-0-1-0-9-4-1-3-0-1-0-0-0-0-2"
+
 
 if __name__ == "__main__":
     main()
