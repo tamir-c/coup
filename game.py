@@ -74,6 +74,7 @@ class Player(object):
         else:
             self.coins = coins
         self.cards = []
+        self.agent = Agent()
 
     def __repr__(self):
         return self.name
@@ -95,17 +96,17 @@ class Player(object):
 
 
     # Removes one the player's influences where card_id is the preference of which card the player loses
-    def lose_influence(self, infToLose=0):
+    def lose_influence(self, inf_to_lose=0):
         inf = self.num_influences()
         if inf == 1:
             if self.cards[0].showing:
                 self.cards[1].showing = True
             else:
                 self.cards[0].showing = True
-        else:
+        else: # The player loses influence 0 by default if they have two active influences
             # lose = choice(self.cards, "Please choose card to lose and reval to the rest of the players:")
             # lose.showing = True
-            self.cards[infToLose].showing = True
+            self.cards[0].showing = True
         print(self.name + " loses an influence!")
 
 class ActionChallenge(object):
@@ -303,8 +304,8 @@ def steal(player, target, success):
         target.coins -= coins_to_take
         player.coins += coins_to_take
 def exchange(player, deck, success):
-    if success:
-        pass
+    tax(player, success)
+    # if success: 
         # print(player.name + " exchanges two cards from the deck!")
         # deck.deal(player, 2)
         # exchangable = []

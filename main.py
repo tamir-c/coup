@@ -36,18 +36,20 @@ def game(state):
                     state.deck.append(winner.cards.pop(card_index))
                     state.deck.shuffle()
                     state.deck.deal(winner)
-                    cardToLose = choice(loser.get_active_cards(), "Please choose card to lose from: ")
-                    card_index = 0
-                    if loser.cards[1] == cardToLose:
-                        card_index = 1
-                    loser.lose_influence(card_index) # The loser can choose which card to turn over
+                    # cardToLose = choice(loser.get_active_cards(), "Please choose card to lose from: ")
+                    # card_index = 0
+                    # if loser.cards[1] == cardToLose:
+                    #     card_index = 1
+                    # loser.lose_influence(card_index) # The loser can choose which card to turn over
+                    loser.lose_influence()
                 else: # the winner is the one who challenged the action. The action fails so the actor loses an influence and play continues
                     print(winner.name + " wins the challenge because " + loser.name + " does not have " + action.action_character)
-                    cardToLose = choice(loser.get_active_cards(), "Please choose card to lose from: ")
-                    card_index = 0
-                    if loser.cards[1] == cardToLose:
-                        card_index = 1
-                    loser.lose_influence(card_index)
+                    # cardToLose = choice(loser.get_active_cards(), "Please choose card to lose from: ")
+                    # card_index = 0
+                    # if loser.cards[1] == cardToLose:
+                    #     card_index = 1
+                    # loser.lose_influence(card_index)
+                    loser.lose_influence()
             else:
                 counteractions = get_counteractions(state.players, action)
                 print("Possible counteractions:")
