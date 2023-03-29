@@ -1,4 +1,5 @@
 import random
+from agent import *
 
 class State(object):
     def __init__(self, state_string = "", num_players = 2):
@@ -241,9 +242,8 @@ def check_steal(player, target):
         return False
     return True
 
-def get_actions(current_player_index, players, deck):
+def get_actions(player, players, deck):
     actions = []
-    player = players[current_player_index]
     force_coup = False
     if player.coins >= 10:
         force_coup = True
@@ -254,7 +254,7 @@ def get_actions(current_player_index, players, deck):
         actions.append(Action("Exchange", player, deck))
         # Each check_[action] function verifies the actor and target are in, and that the game state allows for this action to occur
         for i in range(len(players)):
-            if i == current_player_index:
+            if i == player.id:
                 continue
             if check_coup(player, players[i]):
                 actions.append(Action("Coup", player, deck, players[i]))
@@ -264,7 +264,7 @@ def get_actions(current_player_index, players, deck):
                 actions.append(Action("Steal", player, deck, players[i]))
     else:
         for i in range(len(players)):
-            if i == current_player_index:
+            if i == player.id:
                 continue
             if check_coup(player, players[i]):
                 actions.append(Action("Coup", player, deck, players[i]))
@@ -330,22 +330,19 @@ def exchange(player, deck, success):
         # for c in exchangable:
         #     deck.append(exchangable.pop(0))
         # deck.shuffle()
-def get_counteractions(players, action):
+def get_counteractions(c_actor, players, action):
     counteractions = []
-    player = action.player
     counteractions.append(None)
-    for i in range(len(players)):
-        if i == action.player.id:
-            continue
+    if not (c_actor == action.player):
         if action.name == "Foreign Aid":
-            if (check_player_in(players[i])):
-                counteractions.append(Counteraction(action, players[i], "Duke"))
-    # It has already been checked that the action's target is still in upon creating the action
-    if action.name == "Assassinate":
-        counteractions.append(Counteraction(action, action.target, "Contessa"))
-    elif action.name == "Steal":
-        counteractions.append(Counteraction(action, action.target, "Ambassador"))
-        counteractions.append(Counteraction(action, action.target, "Captain"))
+            if (check_player_in(c_actor)):
+                counteractions.append(Counteraction(action, c_actor, "Duke"))
+        # It has already been checked that the action's target is still in upon creating the action
+        if action.name == "Assassinate" and c_actor == action.target:
+            counteractions.append(Counteraction(action, c_actor, "Contessa"))
+        elif action.name == "Steal" and c_actor == action.target:
+            counteractions.append(Counteraction(action, c_actor, "Ambassador"))
+            counteractions.append(Counteraction(action, c_actor, "Captain"))
 
     return counteractions
 
@@ -363,26 +360,21 @@ def challenge_counteraction(counteraction, challenger):
         return counteraction.counteractor, challenger
     return challenger, counteraction.counteractor
 
-def get_action_challenges(action, players):
+def get_action_challenges(action, challenger, players):
     action_challenges = []
-    player = action.player
     action_challenges.append(None)
-    for i in range(len(players)):
-        if i == action.player.id:
-            continue
+    if not (challenger == action.player):
         if action.name == "Tax" or action.name == "Assassinate" or action.name == "Steal" or action.name == "Exchange":
-            if (check_player_in(players[i])):
-                action_challenges.append(ActionChallenge(action, players[i]))
+            if (check_player_in(challenger)):
+                action_challenges.append(ActionChallenge(action, challenger))
     return action_challenges
 
-def get_counteraction_challenges(counteraction, players):
+def get_counteraction_challenges(counteraction, challenger, players):
     counteraction_challenges = []
     counteraction_challenges.append(None)
-    for i in range(len(players)):
-        if i == counteraction.counteractor.id:
-            continue
-        if check_player_in(players[i]):
-            counteraction_challenges.append(CounteractionChallenge(counteraction, players[i]))
+    if not (challenger == counteraction.counteractor):
+        if check_player_in(challenger):
+            counteraction_challenges.append(CounteractionChallenge(counteraction, challenger))
     return counteraction_challenges
 
 def is_winner(players):

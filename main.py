@@ -13,16 +13,20 @@ def game(state):
                 print(player.name, player.coins, player.num_influences(), player.cards, player.cards[0].showing, player.cards[1].showing)
 
             print("\n" + state.players[turn].name + "'s turn!")
-            actions = get_actions(turn, state.players, state.deck)
+            actions = get_actions(state.players[turn], state.players, state.deck)
             action = choice(actions, "Please choose action from:")
             print("Possible actions:")
             print(actions)
             print("Action taken: " + state.players[turn].name + " plays '" + action.__repr__() + "' claiming " + action.action_character)
 
-            action_challenges = get_action_challenges(action, state.players)
-            action_challenge = choice(action_challenges, "Please choose action challenge from:")
-            print("Possible challenges:")
-            print(action_challenges)
+            for p in state.players:
+                action_challenges = get_action_challenges(action, p, state.players)
+                print("Possible challenges for " + p.name + ":")
+                print(action_challenges)
+                action_challenge = choice(action_challenges, "Please choose action challenge from:")
+                if not (action_challenge == None):
+                    break
+
             print("Challenge taken:")
             print(action_challenge)
             if not (action_challenge == None):
@@ -36,34 +40,31 @@ def game(state):
                     state.deck.append(winner.cards.pop(card_index))
                     state.deck.shuffle()
                     state.deck.deal(winner)
-                    # cardToLose = choice(loser.get_active_cards(), "Please choose card to lose from: ")
-                    # card_index = 0
-                    # if loser.cards[1] == cardToLose:
-                    #     card_index = 1
-                    # loser.lose_influence(card_index) # The loser can choose which card to turn over
+
                     loser.lose_influence()
                 else: # the winner is the one who challenged the action. The action fails so the actor loses an influence and play continues
                     print(winner.name + " wins the challenge because " + loser.name + " does not have " + action.action_character)
-                    # cardToLose = choice(loser.get_active_cards(), "Please choose card to lose from: ")
-                    # card_index = 0
-                    # if loser.cards[1] == cardToLose:
-                    #     card_index = 1
-                    # loser.lose_influence(card_index)
                     loser.lose_influence()
             else:
-                counteractions = get_counteractions(state.players, action)
-                print("Possible counteractions:")
-                print(counteractions)
-                counteraction = choice(counteractions, "Please choose counteraction from:")
-                print("Counteraction taken: ")
-                print(counteraction)
+                for p in state.players:
+                    counteractions = get_counteractions(p, state.players, action)
+                    print("Possible counteractions for " + p.name + ":")
+                    print(counteractions)
+                    counteraction = choice(counteractions, "Please choose counteraction from:")
+                    print("Counteraction taken: ")
+                    print(counteraction)
+                    if not (counteraction == None):
+                        break
                 if counteraction == None: # the action went unchallenged so if no one counteracts the action succeeds 
                     action.execute(success=True)
                 else:
-                    counteraction_challenges = get_counteraction_challenges(counteraction, state.players)
-                    counteraction_challenge = choice(counteraction_challenges, "Please choose counteraction challenge from:")
-                    # print("Possible challenges to counteraction:")
-                    # print(counteraction_challenges)
+                    for p in state.players:
+                        counteraction_challenges = get_counteraction_challenges(counteraction, p, state.players)
+                        print("Possible challenges to counteraction for " + p.name + ":")
+                        print(counteraction_challenges)
+                        counteraction_challenge = choice(counteraction_challenges, "Please choose counteraction challenge from:")
+                        if not (counteraction_challenge == None):
+                            break
                     print("Challenge to counteraction taken:")
                     print(counteraction_challenge)
                     if not (counteraction_challenge == None):
@@ -84,7 +85,7 @@ def game(state):
                             action.execute(success=True)
                             counteraction_challenge.counteraction.counteractor.lose_influence()
 
-                    else: # If no one counters the counteraction it counteracts the action
+                    else: # If no one challenges the counteraction, the counteraction succeeds so the action fails
                         action.execute(success=False)
         
         state.increment_turn()
