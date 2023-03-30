@@ -60,7 +60,6 @@ class Deck(list):
                 player.cards.append(self.pop(i))
                 break
             
-
 class Player(object):
     def __init__(self, id, num_players, name=None, coins=None):
         self.id = id
@@ -133,36 +132,39 @@ class Counteraction(object):
         return self.counteractor.name + " blocks " + self.action.__repr__() + " claiming " + self.claim
 
 class Action(object):
-    # To do! FIX SELF.TYPE
     def __init__(self, action_name, player, deck, target=None):
 
         action_character = "General Action"
         blocked_by = []
-        self.type = 0
+        if action_name == "Income":
+            self.type = 0
 
-        if action_name == "Foreign Aid":
+        elif action_name == "Foreign Aid":
             self.type = 1
             blocked_by.append("Duke")
 
-        elif action_name == "Tax":
+        elif action_name == "Coup":
             self.type = 2
+
+        elif action_name == "Tax":
+            self.type = 3
             action_character = "Duke"
 
         elif action_name == "Assassinate":
-            self.type = 3
+            self.type = 4
             action_character = "Assassin"
             blocked_by.append("Contessa")
-
-        elif action_name == "Steal":
-            self.type = 4
-            action_character = "Captain"
-            blocked_by.append("Ambassador")
-            blocked_by.append("Captain")
 
         elif action_name == "Exchange":
             self.type = 5
             action_character = "Ambassador"
-        
+
+        elif action_name == "Steal":
+            self.type = 6
+            action_character = "Captain"
+            blocked_by.append("Ambassador")
+            blocked_by.append("Captain")
+
         self.name = action_name
         self.player = player
         self.target = target
@@ -305,31 +307,7 @@ def steal(player, target, success):
         player.coins += coins_to_take
 def exchange(player, deck, success):
     tax(player, success)
-    # if success: 
-        # print(player.name + " exchanges two cards from the deck!")
-        # deck.deal(player, 2)
-        # exchangable = []
-        # for card in player.cards:
-        #     if card.showing == False:
-        #         exchangable.append(card)
-        # if len(exchangable) == 3:
-        #     c0 = choice(exchangable, "Please choose one card to keep:")
-        #     c1 = player.cards[1]
-        #     exchangable.remove(c0)
-        #     if player.cards[0].showing:
-        #         c1 = c0
-        #         c0 = player.cards[0]
-        # elif len(exchangable) == 4:
-        #     c0 = choice(exchangable, "Please choose 1st out of 2 cards to keep:")
-        #     exchangable.remove(c0)
-        #     c1 = choice(exchangable, "Please choose 2nd out of 2 cards to keep:")
-        #     exchangable.remove(c1)
-        # player.cards = [c0, c1]
-        # print(player.cards)
-        # print(exchangable)
-        # for c in exchangable:
-        #     deck.append(exchangable.pop(0))
-        # deck.shuffle()
+
 def get_counteractions(c_actor, players, action):
     counteractions = []
     counteractions.append(None)
