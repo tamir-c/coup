@@ -2,9 +2,16 @@ import random
 from game import *
 import time
 import copy
+import sys, os
 
+# Functions to block and enable calls to print (used to speed up testing agents)
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+def enablePrint():
+    sys.stdout = sys.__stdout__
 
 def game(state):
+    blockPrint()
     while not is_winner(state.players):
 
         turn = state.actor
@@ -90,16 +97,21 @@ def game(state):
                         action.execute(success=False)
         
         state.increment_turn()
-    
-    print("\n" + state.players[get_winner(state.players)].name + " wins the game!!!")
+    winner = state.players[get_winner(state.players)]
+    print("\n" + winner.name + " wins the game!!!")
+    enablePrint()
+    return winner
 
 def main():
-    new = True
-    if new:
-        s = State()
-        game(s)
-    else: # resume already existing game from state string - not a priority
-        pass
+    c = 0
+    for i in range(1000):
+        s = State(num_players=3)
+        result = game(s)
+        if result.id == 2:
+            c += 1
+    print(c)
+    #else: # resume already existing game from state string - not a priority
+    #   pass
         # string = "2-6-0-0-1-0-9-4-1-3-0-1-0-0-0-0-2"
 
 
