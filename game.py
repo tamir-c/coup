@@ -61,7 +61,7 @@ class Deck(list):
                 break
             
 class Player(object):
-    def __init__(self, id, num_players, name=None, coins=None):
+    def __init__(self, id, num_players, name=None, coins=None, agent=RandomAgent()):
         self.id = id
         self.name = name
         if self.name == None:
@@ -74,7 +74,7 @@ class Player(object):
         else:
             self.coins = coins
         self.cards = []
-        self.agent = Agent()
+        self.agent = agent
 
     def __repr__(self):
         return self.name
@@ -194,23 +194,6 @@ class Action(object):
             steal(self.player, self.target, success)
         elif self.name == "Exchange":
             exchange(self.player, self.deck, success)
-
-def choice(list, message="Please choose from: ", rand=True):
-    length = len(list)
-    if length == 0:
-        return None
-    if length == 1:
-        return list[0]
-    if rand:
-        return random.choice(list)
-    print(message)
-    for i in range(length):
-        print(str(i) + ": " + list[i].__repr__())
-    while True:
-        c = input()
-        if c.isdigit():
-            if int(c) in range(length):
-                return list[int(c)]
 
 def check_player_in(player):
     if player.num_influences() <= 0:

@@ -21,7 +21,7 @@ def game(state):
 
             print("\n" + state.players[turn].name + "'s turn!")
             actions = get_actions(state.players[turn], state.players, state.deck)
-            action = choice(actions, "Please choose action from:")
+            action = state.players[turn].agent.choice(actions, "Please choose action from:")
             print("Possible actions:")
             print(actions)
             print("Action taken: " + state.players[turn].name + " plays '" + action.__repr__() + "' claiming " + action.action_character)
@@ -30,7 +30,7 @@ def game(state):
                 action_challenges = get_action_challenges(action, p, state.players)
                 print("Possible challenges for " + p.name + ":")
                 print(action_challenges)
-                action_challenge = choice(action_challenges, "Please choose action challenge from:")
+                action_challenge = p.agent.choice(action_challenges, "Please choose action challenge from:")
                 if not (action_challenge == None): # if a player has challenged, break - only one player can challenge an action in a play
                     break
 
@@ -58,7 +58,7 @@ def game(state):
                     counteractions = get_counteractions(p, state.players, action)
                     print("Possible counteractions for " + p.name + ":")
                     print(counteractions)
-                    counteraction = choice(counteractions, "Please choose counteraction from:")
+                    counteraction = p.agent.choice(counteractions, "Please choose counteraction from:")
                     print("Counteraction taken: ")
                     print(counteraction)
                     if not (counteraction == None):
@@ -70,7 +70,7 @@ def game(state):
                         counteraction_challenges = get_counteraction_challenges(counteraction, p, state.players)
                         print("Possible challenges to counteraction for " + p.name + ":")
                         print(counteraction_challenges)
-                        counteraction_challenge = choice(counteraction_challenges, "Please choose counteraction challenge from:")
+                        counteraction_challenge = p.agent.choice(counteraction_challenges, "Please choose counteraction challenge from:")
                         if not (counteraction_challenge == None):
                             break
                     print("Challenge to counteraction taken:")
@@ -103,13 +103,15 @@ def game(state):
     return winner
 
 def main():
-    c = 0
-    for i in range(1000):
-        s = State(num_players=3)
+    iterations = 500
+    num_players=6
+    results = [0 for i in range(num_players)]
+    for i in range(iterations):
+        s = State(num_players=num_players)
         result = game(s)
-        if result.id == 2:
-            c += 1
-    print(c)
+        results[result.id] += 1
+    for i in range(num_players):
+        print((results[i]*100)/iterations)
     #else: # resume already existing game from state string - not a priority
     #   pass
         # string = "2-6-0-0-1-0-9-4-1-3-0-1-0-0-0-0-2"
