@@ -308,6 +308,8 @@ def steal(player, target, success):
 def exchange(player, deck, success):
     tax(player, success)
 
+# Returns a list of all possible counteractions available to a player
+# If none available, or counteractor and actor are the same player, returns a list containing just None
 def get_counteractions(c_actor, players, action):
     counteractions = []
     counteractions.append(None)
@@ -326,18 +328,28 @@ def get_counteractions(c_actor, players, action):
 
 # Returns winner, loser
 def challenge_action(action, challenger):
-    names = [action.player.cards[0].name, action.player.cards[1].name]
+    names = []
+    if action.player.cards[0].showing == False:
+        names.append(action.player.cards[0].name)
+    if action.player.cards[1].showing == False:
+        names.append(action.player.cards[1].name)
     if action.action_character in names:
         return action.player, challenger
     else:
         return challenger, action.player
 
 def challenge_counteraction(counteraction, challenger):
-    names = [counteraction.counteractor.cards[0].name, counteraction.counteractor.cards[1].name]
+    names = []
+    if counteraction.counteractor.cards[0].showing == False:
+        names.append(counteraction.counteractor.cards[0].name)
+    if counteraction.counteractor.cards[1].showing == False:
+        names.append(counteraction.counteractor.cards[1].name)
     if counteraction.claim in names:
         return counteraction.counteractor, challenger
     return challenger, counteraction.counteractor
 
+# Returns a list of all possible action challenges for a given player
+# If none available, or challenger and actor are same player, or the challenger is not in, returns a list containing just None
 def get_action_challenges(action, challenger, players):
     action_challenges = []
     action_challenges.append(None)
@@ -347,6 +359,8 @@ def get_action_challenges(action, challenger, players):
                 action_challenges.append(ActionChallenge(action, challenger))
     return action_challenges
 
+# Returns a list of all available counteraction challenges for a given player
+# If none available, or challenger and counteractor are the same player, or challenger is not in, returns a list containing just None
 def get_counteraction_challenges(counteraction, challenger, players):
     counteraction_challenges = []
     counteraction_challenges.append(None)

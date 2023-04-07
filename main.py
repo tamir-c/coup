@@ -24,14 +24,15 @@ def game(state):
                 print("Possible challenges for " + p.name + ":")
                 print(action_challenges)
                 action_challenge = choice(action_challenges, "Please choose action challenge from:")
-                if not (action_challenge == None):
+                if not (action_challenge == None): # if a player has challenged, break - only one player can challenge an action in a play
                     break
 
             print("Challenge taken:")
             print(action_challenge)
-            if not (action_challenge == None):
+            if not (action_challenge == None): # if a challenge has occured:
                 winner, loser = challenge_action(action_challenge.action, action_challenge.challenger) # handle challenge
-                if winner.id == action.player.id: # if the winner is the one who was challenged
+                if winner == action.player: # if the winner is the one who was challenged
+                    # finds the card index of the actors card that won the challenge
                     card_index = 0
                     if winner.cards[1].name == action.action_character and winner.cards[1].showing == False:
                         card_index = 1
@@ -70,10 +71,10 @@ def game(state):
                     if not (counteraction_challenge == None):
                         winner, loser = challenge_counteraction(counteraction_challenge.counteraction, counteraction_challenge.challenger) # handle challenge: if counteractor wins challenger loses influence 
                         #if winner is counteractor
-                        if winner.id == counteraction_challenge.counteraction.counteractor:
-                            print("Write this...")
+                        if winner == counteraction_challenge.counteraction.counteractor:
+                            print(winner.__repr__() + " wins with " + counteraction_challenge.counteraction.claim + "!")
                             card_index = 0
-                            if winner.cards[1].name == counteraction_challenge.counteraction.claim:
+                            if winner.cards[1].name == counteraction_challenge.counteraction.claim and winner.cards[1].showing == False:
                                 card_index = 1
                             state.deck.append(winner.cards.pop(card_index))
                             state.deck.shuffle()
@@ -81,7 +82,7 @@ def game(state):
                             action.execute(success=False)
                             counteraction_challenge.challenger.lose_influence()
                         else: # if the winner is the challenger
-                            print("Write this too...")
+                            print(winner.__repr__() + " wins because " + loser.__repr__() + " does not have " + counteraction_challenge.counteraction.claim + "!")
                             action.execute(success=True)
                             counteraction_challenge.counteraction.counteractor.lose_influence()
 
