@@ -31,8 +31,36 @@ class RandomNoBluffAgent(object):
                 if item != None:
                     if not (item.claim in item.counteractor.get_active_action_characters()):
                         list.pop(i)
+        return random.choice(list)
+    
+class RandomNoChallengeAgent(object):
+    def choice(self, list, message="", state=None): # state should always be provided to this agent
+        length = len(list)
+        if length == 0:
+            return None
         if state.stage == 1 or state.stage == 3:
             return None
+        return random.choice(list)
+
+class RandomNoBluffNoChallengeAgent(object):
+    def choice(self, list, message="", state=None): # state should always be provided to this agent
+        length = len(list)
+        if length == 0:
+            return None
+        
+        if state.stage == 1 or state.stage == 3:
+            return None
+        
+        for i, item in enumerate(list):
+            if state.stage == 0: # if choosing an action
+                if item.action_character != "General Action":
+                    if not (item.action_character in item.player.get_active_action_characters()):
+                        list.pop(i)
+            elif state.stage == 2: # if choosing a counteraction
+                if item != None:
+                    if not (item.claim in item.counteractor.get_active_action_characters()):
+                        list.pop(i)
+
         return random.choice(list)
 
 

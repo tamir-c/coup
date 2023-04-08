@@ -68,7 +68,7 @@ class Deck(list):
                 break
             
 class Player(object):
-    def __init__(self, id, num_players, name=None, coins=None, agent=RandomAgent()):
+    def __init__(self, id, num_players, name=None, coins=None, agent=RandomNoBluffAgent()):
         if agent == None:
             agent = RandomAgent() #### COULD CAUSE AN ISSUE
         self.id = id

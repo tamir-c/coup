@@ -112,10 +112,13 @@ def game(state):
 
 def main():
     iterations = 1000
-    num_players=6
+    num_players=3
     results = [0 for i in range(num_players)]
     for i in range(iterations):
-        s = State(num_players=num_players, agents={0:RandomNoBluffAgent()})
+        s = State(num_players=num_players, 
+                  agents={},
+                #   agents={0:RandomNoBluffAgent(), 7:RandomNoChallengeAgent(), 7:RandomNoChallengeAgent()}
+                  )
         result = game(s)
         results[result.id] += 1
     for i in range(num_players):
