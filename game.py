@@ -49,7 +49,6 @@ class Card(object):
 class Deck(list):
     
     def __init__(self):
-        # super().__init__()
         for i in range(5): # A standard deck has 3 of each of the 5 character types
             for j in range(3):
                 self.append(Card(i))
@@ -58,10 +57,15 @@ class Deck(list):
         random.shuffle(self)
     
     def deal(self, player, times=1):
+        if len(player.cards) >= 2:
+            return
         for i in range(times):
-            player.cards.append(self.pop(0))
+            if len(player.cards) < 2:
+                player.cards.append(self.pop(0))
     
     def deal_character(self, player, type):
+        if len(player.cards) >= 2:
+            return
         for i in range(len(self)):
             if self[i].type == type:
                 player.cards.append(self.pop(i))
@@ -107,8 +111,8 @@ class Player(object):
         active_cards = self.get_active_cards()
         return [c.name for c in active_cards]
 
-    # Removes one the player's influences where card_id is the preference of which card the player loses
-    def lose_influence(self, inf_to_lose=0):
+    # Removes one of the player's influences
+    def lose_influence(self):
         inf = self.num_influences()
         if inf == 1:
             if self.cards[0].showing:

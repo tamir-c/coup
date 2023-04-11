@@ -11,6 +11,9 @@ from abc import ABC, abstractmethod
 #         pass
     
 class RandomAgent(object):
+    def __init__(self):
+        self.name = "Random Agent"
+
     def choice(self, list, message="", state=None):
         length = len(list)
         if length == 0:
@@ -18,6 +21,8 @@ class RandomAgent(object):
         return random.choice(list)
     
 class RandomNoBluffAgent(object):
+    def __init__(self):
+        self.name = "Random No Bluff Agent"
     def choice(self, list, message="", state=None): # state should always be provided to this agent
         length = len(list)
         if length == 0:
@@ -34,6 +39,8 @@ class RandomNoBluffAgent(object):
         return random.choice(list)
     
 class RandomNoChallengeAgent(object):
+    def __init__(self):
+        self.name = "Random No Challenge Agent"
     def choice(self, list, message="", state=None): # state should always be provided to this agent
         length = len(list)
         if length == 0:
@@ -43,6 +50,8 @@ class RandomNoChallengeAgent(object):
         return random.choice(list)
 
 class RandomNoBluffNoChallengeAgent(object):
+    def __init__(self):
+        self.name = "Random No Bluff No Challenge Agent"
     def choice(self, list, message="", state=None): # state should always be provided to this agent
         length = len(list)
         if length == 0:
@@ -65,6 +74,8 @@ class RandomNoBluffNoChallengeAgent(object):
 
 
 class HumanAgent(object):
+    def __init__(self):
+        self.name = "Human Agent"
     # choice function for human agent
     def choice(self, list, message="Please choose from: "):
         length = len(list)
