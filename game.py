@@ -281,9 +281,9 @@ def foreign_aid(player, success):
         print(player.name + " gains 2 coins through Foreign Aid!")
         player.coins += 2
 def coup(player, target, success):
-    player.coins -= 7
-    print(player.name + " spends 7 coins to Coup!")
     if success:
+        player.coins -= 7
+        print(player.name + " spends 7 coins to Coup!")
         print(player.name + " Coups " + target.name)
         target.lose_influence() # change this to allow target to choose which card to give up
 def tax(player, success):

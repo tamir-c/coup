@@ -192,7 +192,7 @@ class TestActions(unittest.TestCase):
     def test_income_2(self):
         c = self.p1.coins
         income(self.p1, False)
-        self.assertNotEqual(self.p1.coins, c+1)
+        self.assertEqual(self.p1.coins, c)
     def test_foreign_aid_1(self):
         c = self.p1.coins
         foreign_aid(self.p1, True)
@@ -200,12 +200,48 @@ class TestActions(unittest.TestCase):
     def test_foreign_aid_2(self):
         c = self.p1.coins
         foreign_aid(self.p1, False)
-        self.assertNotEqual(self.p1.coins, c+2)
-    def test_coup(self):
+        self.assertEqual(self.p1.coins, c)
+    def test_coup_1(self):
         self.p1.coins = 7
         coup(self.p1, self.p2, True)
         self.assertEqual(self.p1.coins, 0)
         self.assertEqual(self.p2.num_influences(), 1)
+    def test_coup_2(self):
+        self.p1.coins = 7
+        coup(self.p1, self.p2, False)
+        self.assertEqual(self.p1.coins, 7)
+        self.assertEqual(self.p2.num_influences(), 2)
+    def test_tax_1(self):
+        c = self.p1.coins
+        tax(self.p1, True)
+        self.assertEqual(self.p1.coins, c+3)
+    def test_tax_2(self):
+        c = self.p1.coins
+        tax(self.p1, False)
+        self.assertEqual(self.p1.coins, c)
+    def test_assassinate_1(self):
+        c = self.p1.coins
+        assassinate(self.p1, self.p2, True)
+        self.assertEqual(self.p1.coins, c-3)
+        self.assertEqual(self.p2.num_influences(), 1)
+    def test_assassinate_2(self):
+        c = self.p1.coins
+        assassinate(self.p1, self.p2, False)
+        self.assertEqual(self.p1.coins, c-3)
+        self.assertEqual(self.p2.num_influences(), 2)
+    def test_steal_1(self):
+        c = self.p2.coins
+        steal(self.p1, self.p2, True)
+        self.assertEqual(self.p2.coins, c-2)
+    def test_steal_2(self):
+        c = self.p2.coins
+        steal(self.p1, self.p2, False)
+        self.assertEqual(self.p2.coins, c)
+    def test_steal_3(self):
+        self.p2.coins = 1
+        steal(self.p1, self.p2, True)
+        self.assertEqual(self.p2.coins, 0)
+
 
 if __name__ == '__main__':
     unittest.main()
