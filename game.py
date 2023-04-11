@@ -2,7 +2,7 @@ import random
 from agent import *
 
 class State(object):
-    def __init__(self, state_string = "", num_players = 2):
+    def __init__(self, state_string = "", num_players = 2, agents={}):
         if num_players <= 1 or num_players > 6:
             num_players = 2
         if state_string == "":    
@@ -10,9 +10,16 @@ class State(object):
             self.players = []
             self.deck = Deck()
             self.deck.shuffle()
-            self.actor = 0
+
+            self.actor = 0 # actor index#
+            self.action = None
+            self.challenge = None
+            self.counteraction = None
+            self.counteraction_challenge = None
+            self.stage = 0
+
             for i in range(self.num_players):
-                self.players.append(Player(i, self.num_players)) # player.id will always match player's index in players
+                self.players.append(Player(i, self.num_players, agent=agents.get(i))) # player.id will always match player's index in players
                 self.deck.deal(self.players[i], times=2)
         else:
             self.num_players, self.players, self.deck, self.actor = load_game_state(state_string)
@@ -61,7 +68,9 @@ class Deck(list):
                 break
             
 class Player(object):
-    def __init__(self, id, num_players, name=None, coins=None):
+    def __init__(self, id, num_players, name=None, coins=None, agent=RandomNoBluffAgent()):
+        if agent == None:
+            agent = RandomAgent() #### COULD CAUSE AN ISSUE
         self.id = id
         self.name = name
         if self.name == None:
@@ -74,7 +83,7 @@ class Player(object):
         else:
             self.coins = coins
         self.cards = []
-        self.agent = Agent()
+        self.agent = agent
 
     def __repr__(self):
         return self.name
@@ -93,7 +102,10 @@ class Player(object):
             if c.showing == False:
                 active_cards.append(c)
         return active_cards
-
+    
+    def get_active_action_characters(self):
+        active_cards = self.get_active_cards()
+        return [c.name for c in active_cards]
 
     # Removes one the player's influences where card_id is the preference of which card the player loses
     def lose_influence(self, inf_to_lose=0):
@@ -194,23 +206,6 @@ class Action(object):
             steal(self.player, self.target, success)
         elif self.name == "Exchange":
             exchange(self.player, self.deck, success)
-
-def choice(list, message="Please choose from: ", rand=True):
-    length = len(list)
-    if length == 0:
-        return None
-    if length == 1:
-        return list[0]
-    if rand:
-        return random.choice(list)
-    print(message)
-    for i in range(length):
-        print(str(i) + ": " + list[i].__repr__())
-    while True:
-        c = input()
-        if c.isdigit():
-            if int(c) in range(length):
-                return list[int(c)]
 
 def check_player_in(player):
     if player.num_influences() <= 0:
