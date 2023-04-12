@@ -25,12 +25,14 @@ class State(object):
             self.num_players, self.players, self.deck, self.actor = load_game_state(state_string)
 
     def increment_turn(self):
-        self.actor = (self.actor + 1) % self.num_players
+        found_next = False
+        while not found_next:
+            self.actor = (self.actor + 1) % self.num_players
+            if self.players[self.actor].check_player_in():
+                found_next = True
 
     def get_actions(self):
         player = self.players[self.actor]
-        if not player.check_player_in():
-            return [None]
         actions = []
         force_coup = False
         if player.coins >= 10:

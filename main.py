@@ -4,6 +4,7 @@ import time
 import copy
 import sys, os
 from agent import *
+from mcts import *
 
 # Functions to block and enable calls to print (used to speed up testing agents)
 def blockPrint():
@@ -24,6 +25,7 @@ def game(state):
     return winner
 
 def main():
+    blockPrint()
     iterations = 1
     num_players=3
     results = [0 for i in range(num_players)]
@@ -32,10 +34,16 @@ def main():
                   agents={},
                 #   agents={0:RandomNoBluffAgent(), 7:RandomNoChallengeAgent(), 7:RandomNoChallengeAgent()}
                   )
-        result = game(s)
-        results[result.id] += 1
-    for i in range(num_players):
-        print((results[i]*100)/iterations)
+        mcts = MCTS(s)
+        mcts.search()
+        a = mcts.best_move()
+        enablePrint()
+        print(a)
+        print(f"MCTS ran for {mcts.run_time} seconds, generating {mcts.node_count} nodes with {mcts.num_rollouts} rollouts.")
+    #     result = game(s)
+    #     results[result.id] += 1
+    # for i in range(num_players):
+    #     print((results[i]*100)/iterations)
 
 
     #else: # resume already existing game from state string - not a priority
