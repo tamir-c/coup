@@ -4,6 +4,9 @@ import numpy as np
 from game import *
 import time
 
+# Significant portions of code found from
+# https://www.harrycodes.com/blog/monte-carlo-tree-search
+
 class Node:
     def __init__(self, action, parent):
         self.action = action
