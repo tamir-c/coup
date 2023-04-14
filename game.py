@@ -1,5 +1,6 @@
 import random
 from agent import *
+import sys, os
 
 class State(object):
     def __init__(self, state_string = "", num_players = 2, agents={}):
@@ -125,7 +126,7 @@ class State(object):
                 if a2 == None: # the action went unchallenged so if no one counteracts the action succeeds 
                     self.action.execute(success=True)
                 else: # a2 stores the counteraction
-                    if self.counteraction_challenge == 1:
+                    if self.is_counteraction_challenge:
                         winner, loser = challenge_counteraction(a3.counteraction, a3.challenger) # handle challenge: if counteractor wins challenger loses influence 
                         #if winner is counteractor
                         if winner == a3.counteraction.counteractor:
@@ -143,16 +144,17 @@ class State(object):
 
                     else: # If no one challenges the counteraction, the counteraction succeeds so the action fails
                         a1.execute(success=False)
+        self.stage = 0
+        self.action = None
+        self.challenge = None
+        self.is_challenge = False
+        self.counteraction = None
+        self.is_counteraction = False
+        self.counteraction_challenge = None
+        self.is_counteraction_challenge = False
         if not self.is_winner():
             self.increment_turn()
-            self.stage = 0
-            self.action = None
-            self.challenge = None
-            self.is_challenge = False
-            self.counteraction = None
-            self.is_counteraction = False
-            self.counteraction_challenge = None
-            self.is_counteraction_challenge = False
+
 
     # print the state for debugging purposes
     def print(self):
@@ -182,20 +184,13 @@ class State(object):
                         break
             if self.is_counteraction:
                 for p in self.players:
-                    a3 = get_counteraction_challenges(a2, p)
+                    a3 = random.choice(get_counteraction_challenges(a2, p))
                     if a3:
                         self.is_counteraction_challenge = True
                         self.counteraction_challenge = a3
+                        break
             self.transition(a1, a2, a3)
         return self.get_winner().id
-    
-    def get_random_actions(self):
-        a1 = None
-        a2 = None
-        a3 = None
-        if self.stage == 0:
-            pass
-
 
 class Card(object):
         def __init__(self, type):
@@ -241,9 +236,9 @@ class Deck(list):
                 break
             
 class Player(object):
-    def __init__(self, id, num_players, name=None, coins=None, agent=RandomAgent()):
+    def __init__(self, id, num_players, name=None, coins=None, agent=RandomAgent(id=0)):
         if agent == None:
-            agent = RandomAgent() #### COULD CAUSE AN ISSUE
+            agent = RandomAgent(0) #### COULD CAUSE AN ISSUE
         self.id = id
         self.name = name
         if self.name == None:
@@ -487,8 +482,8 @@ def get_counteraction_challenges(counteraction, challenger):
     counteraction_challenges.append(None)
     if counteraction == None:
         return counteraction_challenges
-    # if challenger == counteraction.action.player: # IMPORTANT: we modify the game so the actor cannot challenge a counteraction, making the transitions easier to model
-    #     return counteraction_challenges
+    if challenger == counteraction.action.player: # IMPORTANT: we modify the game so the actor cannot challenge a counteraction, making the transitions easier to model
+        return counteraction_challenges
     if not (challenger == counteraction.counteractor):
         if challenger.check_player_in():
             counteraction_challenges.append(CounteractionChallenge(counteraction, challenger))
@@ -606,3 +601,10 @@ def transition(state):
                 else: # If no one challenges the counteraction, the counteraction succeeds so the action fails
                     state.action.execute(success=False)
     state.increment_turn()
+
+    
+# Functions to block and enable calls to print (used to speed up testing agents)
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+def enablePrint():
+    sys.stdout = sys.__stdout__
