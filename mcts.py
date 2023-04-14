@@ -2,6 +2,7 @@ import random
 from copy import deepcopy
 import numpy as np
 from game import *
+from agent import *
 import time
 
 # Significant portions of code found from
@@ -43,43 +44,108 @@ class MCTS:
 
         while len(node.children) != 0:
             children = node.children
-            max_value = 0
+            max_value = children[0].value()
             for c in children:
                 if c.value() > max_value:
                     max_value = c.value()
             max_nodes = [c for c in children if c.value() == max_value]
-
             node = random.choice(max_nodes)
-            state.transition(node.action)
+            # select node to explore given the following:
+            # if stage == 0 we are selecting an action
+            # if stage == 1 we are selecting a challenge
+            # if stage == 2 we are selecting a counteraction
+            # if stage == 3 we are selecting a counteraction challenge
+
+            a2 = None
+            a3 = None
+            if state.stage == 0:
+                for p in state.players:
+                    a2 = random.choice(get_action_challenges(node.action, p))
+                    if a2:
+                        state.is_challenge = True
+                        state.challenge = a2
+                        break
+                if not a2:
+                    for p in state.players:
+                        a2 = random.choice(state.get_counteractions(state.players[self.id]))
+                        if a2:
+                            state.is_counteraction = True
+                            state.counteraction = a2
+                if state.is_counteraction:
+                    for p in state.players:
+                        a3 = get_counteraction_challenges(a2, p)
+                    if a3:
+                        state.is_counteraction_challenge = True
+                state.transition(node.action, a2, a3)
+            elif state.stage == 1: # choosing whether to challenge or not
+                state.transition(state.action, node.action, None)
+            elif state.stage == 2: # choosing whether to counteract or not. We assume we might choose to challenge counteraction if made independently or counteracting
+                for p in state.players:
+                    a3 = random.choice(get_counteraction_challenges(node.action))
+                    if a3:
+                        state.is_counteraction_challenge = True
+                        state.counteraction_challenge = a3
+                        break
+                state.transition(state.action, node.action, a3)
+            elif state.stage == 3:
+                state.transition(state.action, state.counteraction, node.action)
 
             if node.num_sims == 0:
                 return node, state
 
         if self.expand(node, state):
             node = random.choice(node.children)
-            state.transition(node.action)
+            # state.action = node.action
+            if state.stage == 0:
+                state.action = node.action
+                a2 = random.choice(get_action_challenges(node.action, state.players[self.id]))
+                if a2:
+                    state.challenge = 1
+                if not a2:
+                    a2 = random.choice(state.get_counteractions(state.players[self.id]))
+                    if a2:
+                        state.counteraction = 1
+                a3 = None
+                if state.counteraction:
+                    a3 = get_counteraction_challenges(a2)
+                    if a3:
+                        state.counteraction_challenge = 1
+                state.transition(node.action, a2, a3)
+            elif state.stage == 1:
+                state.transition(state.action, node.action, None)
+            elif state.stage == 2:
+                a3 = random.choice(get_counteraction_challenges(node.action))
+                state.transition(state.action, node.action, a3)
+            elif state.stage == 3:
+                state.transition(state.action, state.counteraction, node.action)
 
         return node, state
     
     def expand(self, parent, state):
         if state.is_winner():
             return False
-        
-        actions = state.get_actions()
+        if state.stage == 0:
+            actions = state.get_actions()
+        elif state.stage == 1:
+            actions = get_action_challenges(state.action, state.players[self.id])
+        elif state.stage == 2:
+            actions = state.get_counteractions(state.action, state.players[self.id])
+        elif state.stage == 3:
+            actions = state.get_counteraction_challenges(state.counteraction, state.players[self.id])
         children = [Node(action, parent) for action in actions]
         parent.add_children(children)
 
         return True
     
     def roll_out(self, state):
-        while not state.is_winner():
-            actions = state.get_actions()
-            a = random.choice(actions)
-            state.transition(a)
-        return state.get_winner().id
+        # while not state.is_winner():
+        #     actions = state.get_actions()
+        #     a = random.choice(actions)
+
+        return state.random_sim() # plays game out until the end and returns winner.id
     
     def back_propagate(self, node, turn, outcome):
-        if outcome == self.id:
+        if outcome == self.id: # if mcts won
             reward = 1
         else:
             reward = 0
@@ -93,7 +159,7 @@ class MCTS:
             else:
                 reward = 0
 
-    def search(self, time_limit = 2):
+    def search(self, time_limit = 1):
         t_start = time.process_time()
 
         n_rollouts = 0
@@ -111,7 +177,7 @@ class MCTS:
         if self.root_state.is_winner():
             return -1
         
-        max_value = 0
+        max_value = self.root.children[0].num_sims
         for c in self.root.children:
             if c.num_sims > max_value:
                 max_value = c.num_sims

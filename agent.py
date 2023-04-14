@@ -1,5 +1,6 @@
 import random
 from abc import ABC, abstractmethod
+from game import *
 
 # TODO: split actions, challenges, counteractions, and counteraction challenges into lists that belong to each agent
 
@@ -11,15 +12,22 @@ from abc import ABC, abstractmethod
 #         pass
     
 class RandomAgent(object):
-    def __init__(self):
+    def __init__(self, id):
+        self.id = id
         self.name = "Random Agent"
 
-    def choice(self, list, message="", state=None):
-        length = len(list)
-        if length == 0:
-            return None
-        return random.choice(list)
-    
+    def choice(self, state, message=""):
+        a = None
+        if state.stage == 0 and self.id == state.actor:
+            a = random.choice(state.get_actions())
+        elif state.stage == 1:
+            a = random.choice(get_action_challenges(state.action, state.players[self.id]))
+        elif state.stage == 2:
+            a = random.choice(state.get_counteractions(state.players[self.id]))
+        elif state.stage == 3:
+            a = random.choice(get_counteraction_challenges(state.counteraction, state.players[self.id]))
+        return a
+
 class RandomNoBluffAgent(object):
     def __init__(self):
         self.name = "Random No Bluff Agent"
