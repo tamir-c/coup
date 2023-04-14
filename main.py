@@ -4,10 +4,10 @@ import time
 import copy
 from agent import *
 from mcts import *
+from state import *
 
 
 def game(state):
-    blockPrint()
     while not state.is_winner():
         actions = state.get_actions()
         a = random.choice(actions)
@@ -15,11 +15,9 @@ def game(state):
 
     winner = state.get_winner()
     print("\n" + winner.name + " wins the game!!!")
-    enablePrint()
     return winner
 
 def main():
-    blockPrint()
     iterations = 1000
     num_players=3
     results = [0 for i in range(num_players)]
@@ -29,7 +27,6 @@ def main():
         winner_id = state.random_sim()
 
         results[winner_id] += 1
-    enablePrint()
     for i in range(num_players):
         print((results[i]*100)/iterations)
 

@@ -4,6 +4,7 @@ import numpy as np
 from game import *
 from agent import *
 import time
+from state import *
 
 # Significant portions of code found from
 # https://www.harrycodes.com/blog/monte-carlo-tree-search
@@ -30,8 +31,8 @@ class Node:
             return (self.num_wins / self.num_sims) + explore * np.sqrt(np.log(self.parent.num_sims) / self.num_sims)
         
 class MCTS:
-    def __init__(self, state):
-        self.id = 0
+    def __init__(self, state, id = 0):
+        self.id = id
         self.root_state = deepcopy(state)
         self.root = Node(None, None)
         self.run_time = 0
@@ -72,11 +73,11 @@ class MCTS:
         if state.stage == 0:
             actions = state.get_actions()
         elif state.stage == 1:
-            actions = get_action_challenges(state.action, state.players[self.id])
+            actions = state.get_action_challenges(state.players[self.id])
         elif state.stage == 2:
             actions = state.get_counteractions(state.players[self.id])
         elif state.stage == 3:
-            actions = get_counteraction_challenges(state.counteraction, state.players[self.id])
+            actions = state.get_counteraction_challenges(state.players[self.id])
         children = [Node(action, parent) for action in actions]
         parent.add_children(children)
         return True
@@ -103,7 +104,7 @@ class MCTS:
             else:
                 reward = 0
 
-    def search(self, time_limit = 0.01):
+    def search(self, time_limit = 0.1):
         t_start = time.process_time()
         n_rollouts = 0
         while time.process_time() - t_start < time_limit:
@@ -134,7 +135,7 @@ class MCTS:
         if state.stage == 0:
             state.action = node.action
             for p in state.players:
-                a2 = random.choice(get_action_challenges(node.action, p))
+                a2 = random.choice(state.get_action_challenges(p))
                 if a2:
                     state.is_challenge = True
                     state.is_counteraction = False
@@ -150,7 +151,7 @@ class MCTS:
                         break
             if state.is_counteraction:
                 for p in state.players:
-                    a3 = random.choice(get_counteraction_challenges(a2, p))
+                    a3 = random.choice(state.get_counteraction_challenges(p))
                     if a3:
                         state.is_counteraction_challenge = True
                         break
@@ -164,7 +165,7 @@ class MCTS:
                 state.is_counteraction = True
                 state.counteraction = node.action
             for p in state.players:
-                a3 = random.choice(get_counteraction_challenges(node.action, p))
+                a3 = random.choice(state.get_counteraction_challenges(p))
                 if a3:
                     state.is_counteraction_challenge = True
                     break
@@ -175,29 +176,27 @@ class MCTS:
             state.transition(state.action, state.counteraction, node.action)
 
 def main():
-    blockPrint()
-    num_players=3
-    iterations = 10
+    mcts_id = 0
+    num_players=4
+    iterations = 1
     results = [0 for i in range(num_players)]
     
     for i in range(iterations):
         state = State(num_players=num_players, agents={})
         while not state.is_winner():
+            state.print()
             a1 = None
             a2 = None
             a3 = None
             state.stage = 0
-            if state.actor == 0:
-                mcts = MCTS(state)
+            if state.actor == mcts_id:
+                mcts = MCTS(state, mcts_id)
                 mcts.search()
                 a1 = mcts.best_move()
-                enablePrint()
-                state.print()
                 print(a1)
-                blockPrint()
                 state.action = a1
                 for p in state.players:
-                    a2 = random.choice(get_action_challenges(a1, p))
+                    a2 = random.choice(state.get_action_challenges(p))
                     if a2:
                         state.is_challenge = True
                         state.challenge = a2
@@ -211,7 +210,7 @@ def main():
                             break
                 if state.is_counteraction:
                     for p in state.players:
-                        a3 = random.choice(get_counteraction_challenges(a2, p))
+                        a3 = random.choice(state.get_counteraction_challenges(p))
                         if a3:
                             state.is_counteraction_challenge = True
                             state.counteraction_challenge = a3
@@ -221,16 +220,13 @@ def main():
                 state.action = a1
                 state.stage = 1
                 for p in state.players:
-                    if p.id == 0:
-                        mcts = MCTS(state)
+                    if p.id == mcts_id:
+                        mcts = MCTS(state, mcts_id)
                         mcts.search()
                         a2 = mcts.best_move()
-                        enablePrint()
                         print(a2)
-                        # state.print()
-                        blockPrint()
                     elif not a2:
-                        a2 = random.choice(get_action_challenges(a1, p))
+                        a2 = random.choice(state.get_action_challenges(p))
                     if a2:
                         state.is_challenge = True
                         state.challenge = a2
@@ -238,14 +234,11 @@ def main():
                 if not a2:
                     state.stage = 2
                     for p in state.players:
-                        if p.id == 0:
-                            mcts = MCTS(state)
+                        if p.id == mcts_id:
+                            mcts = MCTS(state, mcts_id)
                             mcts.search()
                             a2 = mcts.best_move()
-                            enablePrint()
                             print(a2)
-                            # state.print()
-                            blockPrint()
                         elif not a2:
                             a2 = random.choice(state.get_counteractions(p))
                         if a2:
@@ -255,16 +248,13 @@ def main():
                     if a2:
                         state.stage = 3
                         for p in state.players:
-                            if p.id == 0:
-                                mcts = MCTS(state)
+                            if p.id == mcts_id:
+                                mcts = MCTS(state, mcts_id)
                                 mcts.search()
                                 a3 = mcts.best_move()
-                                enablePrint()
                                 print(a3)
-                                # state.print()
-                                blockPrint()
                             elif not a3:
-                                a3 = random.choice(get_counteraction_challenges(a2, p))
+                                a3 = random.choice(state.get_counteraction_challenges(p))
                             if a3:
                                 state.counteraction_challenge = a3
                                 state.is_counteraction_challenge = True
