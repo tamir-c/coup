@@ -34,10 +34,12 @@ def main():
                   agents={},
                 #   agents={0:RandomNoBluffAgent(), 7:RandomNoChallengeAgent(), 7:RandomNoChallengeAgent()}
                   )
+        
         mcts = MCTS(s)
         mcts.search()
         a = mcts.best_move()
         enablePrint()
+        print(f"{s.players[0].cards[0]} and {s.players[0].cards[1]}")
         print(a)
         print(f"MCTS ran for {mcts.run_time} seconds, generating {mcts.node_count} nodes with {mcts.num_rollouts} rollouts.")
     #     result = game(s)
