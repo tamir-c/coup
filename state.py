@@ -176,7 +176,6 @@ class State(object):
         if not self.is_winner():
             self.increment_turn()
 
-
     # print the state for debugging purposes
     def print(self):
         for p in self.players:

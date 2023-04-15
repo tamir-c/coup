@@ -67,11 +67,16 @@ class MCTS:
 
         return node, state
     
-    def expand(self, parent, state):
+    # are we expanding too deep such that nodes and states do not always coincide with the same player's turn?
+    def expand(self, parent, state): 
         if state.is_winner():
+            return False
+        if parent != self.root:
             return False
         if state.stage == 0:
             actions = state.get_actions()
+            print(state.actor)
+            print(actions)
         elif state.stage == 1:
             actions = state.get_action_challenges(state.players[self.id])
         elif state.stage == 2:
@@ -80,13 +85,10 @@ class MCTS:
             actions = state.get_counteraction_challenges(state.players[self.id])
         children = [Node(action, parent) for action in actions]
         parent.add_children(children)
+        self.node_count += len(children)
         return True
     
     def roll_out(self, state):
-        # while not state.is_winner():
-        #     actions = state.get_actions()
-        #     a = random.choice(actions)
-
         return state.random_sim() # plays game out until the end and returns winner.id
     
     def back_propagate(self, node, turn, outcome):
@@ -155,7 +157,7 @@ class MCTS:
                     if a3:
                         state.is_counteraction_challenge = True
                         break
-            state.transition(node.action, a2, a3)
+            state.transition(state.action, a2, a3)
         elif state.stage == 1: # choosing whether to challenge or not
             if node.action:
                 state.is_challenge = True
@@ -174,98 +176,3 @@ class MCTS:
             if node.action:
                 state.is_counteraction_challenge = True
             state.transition(state.action, state.counteraction, node.action)
-
-def main():
-    mcts_id = 0
-    num_players=4
-    iterations = 1
-    results = [0 for i in range(num_players)]
-    
-    for i in range(iterations):
-        state = State(num_players=num_players, agents={})
-        while not state.is_winner():
-            state.print()
-            a1 = None
-            a2 = None
-            a3 = None
-            state.stage = 0
-            if state.actor == mcts_id:
-                mcts = MCTS(state, mcts_id)
-                mcts.search()
-                a1 = mcts.best_move()
-                print(a1)
-                state.action = a1
-                for p in state.players:
-                    a2 = random.choice(state.get_action_challenges(p))
-                    if a2:
-                        state.is_challenge = True
-                        state.challenge = a2
-                        break
-                if not a2:
-                    for p in state.players:
-                        a2 = random.choice(state.get_counteractions(p))
-                        if a2:
-                            state.is_counteraction = True
-                            state.counteraction = a2
-                            break
-                if state.is_counteraction:
-                    for p in state.players:
-                        a3 = random.choice(state.get_counteraction_challenges(p))
-                        if a3:
-                            state.is_counteraction_challenge = True
-                            state.counteraction_challenge = a3
-                            break
-            else:
-                a1 = random.choice(state.get_actions())
-                state.action = a1
-                state.stage = 1
-                for p in state.players:
-                    if p.id == mcts_id:
-                        mcts = MCTS(state, mcts_id)
-                        mcts.search()
-                        a2 = mcts.best_move()
-                        print(a2)
-                    elif not a2:
-                        a2 = random.choice(state.get_action_challenges(p))
-                    if a2:
-                        state.is_challenge = True
-                        state.challenge = a2
-                        break
-                if not a2:
-                    state.stage = 2
-                    for p in state.players:
-                        if p.id == mcts_id:
-                            mcts = MCTS(state, mcts_id)
-                            mcts.search()
-                            a2 = mcts.best_move()
-                            print(a2)
-                        elif not a2:
-                            a2 = random.choice(state.get_counteractions(p))
-                        if a2:
-                            state.is_counteraction = True
-                            state.counteraction = a2
-                            break
-                    if a2:
-                        state.stage = 3
-                        for p in state.players:
-                            if p.id == mcts_id:
-                                mcts = MCTS(state, mcts_id)
-                                mcts.search()
-                                a3 = mcts.best_move()
-                                print(a3)
-                            elif not a3:
-                                a3 = random.choice(state.get_counteraction_challenges(p))
-                            if a3:
-                                state.counteraction_challenge = a3
-                                state.is_counteraction_challenge = True
-                                break
-                
-            state.transition(a1, a2, a3)
-        results[state.get_winner().id] += 1
-    enablePrint()
-    for i in range(num_players):
-        print(results[i])
-        # print((results[i]*100)/iterations)
-
-if __name__ == "__main__":
-    main()
