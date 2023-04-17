@@ -1,7 +1,31 @@
 import random
 from agent import *
-from mcts import *
-import sys, os
+
+class State(object):
+    def __init__(self, state_string = "", num_players = 2, agents={}):
+        if num_players <= 1 or num_players > 6:
+            num_players = 2
+        if state_string == "":    
+            self.num_players = num_players
+            self.players = []
+            self.deck = Deck()
+            self.deck.shuffle()
+
+            self.actor = 0 # actor index#
+            self.action = None
+            self.challenge = None
+            self.counteraction = None
+            self.counteraction_challenge = None
+            self.stage = 0
+
+            for i in range(self.num_players):
+                self.players.append(Player(i, self.num_players, agent=agents.get(i))) # player.id will always match player's index in players
+                self.deck.deal(self.players[i], times=2)
+        else:
+            self.num_players, self.players, self.deck, self.actor = load_game_state(state_string)
+
+    def increment_turn(self):
+        self.actor = (self.actor + 1) % self.num_players
 
 class Card(object):
         def __init__(self, type):
@@ -23,7 +47,9 @@ class Card(object):
             return self.name
 
 class Deck(list):
+    
     def __init__(self):
+        # super().__init__()
         for i in range(5): # A standard deck has 3 of each of the 5 character types
             for j in range(3):
                 self.append(Card(i))
@@ -32,25 +58,23 @@ class Deck(list):
         random.shuffle(self)
     
     def deal(self, player, times=1):
-        if len(player.cards) >= 2:
-            return
         for i in range(times):
-            if len(player.cards) < 2:
-                player.cards.append(self.pop(0))
+            player.cards.append(self.pop(0))
     
     def deal_character(self, player, type):
-        if len(player.cards) >= 2:
-            return
         for i in range(len(self)):
             if self[i].type == type:
                 player.cards.append(self.pop(i))
                 break
             
 class Player(object):
-    def __init__(self, id, num_players, coins=None, agent="random"):
-        self.agent = generate_agent(id, agent)
+    def __init__(self, id, num_players, name=None, coins=None, agent=RandomNoBluffAgent()):
+        if agent == None:
+            agent = RandomAgent() #### COULD CAUSE AN ISSUE
         self.id = id
-        self.name = "Player " + str(self.id)
+        self.name = name
+        if self.name == None:
+            self.name = "Player " + str(self.id)
         if coins==None:
             if num_players == 2:
                 self.coins = 1
@@ -59,6 +83,7 @@ class Player(object):
         else:
             self.coins = coins
         self.cards = []
+        self.agent = agent
 
     def __repr__(self):
         return self.name
@@ -82,8 +107,8 @@ class Player(object):
         active_cards = self.get_active_cards()
         return [c.name for c in active_cards]
 
-    # Removes one of the player's influences
-    def lose_influence(self):
+    # Removes one the player's influences where card_id is the preference of which card the player loses
+    def lose_influence(self, inf_to_lose=0):
         inf = self.num_influences()
         if inf == 1:
             if self.cards[0].showing:
@@ -91,13 +116,10 @@ class Player(object):
             else:
                 self.cards[0].showing = True
         else: # The player loses influence 0 by default if they have two active influences
+            # lose = choice(self.cards, "Please choose card to lose and reval to the rest of the players:")
+            # lose.showing = True
             self.cards[0].showing = True
         print(self.name + " loses an influence!")
-
-    def check_player_in(self):
-        if self.num_influences() <= 0:
-            return False
-        return True
 
 class ActionChallenge(object):
     def __init__(self, action, challenger):
@@ -185,32 +207,66 @@ class Action(object):
         elif self.name == "Exchange":
             exchange(self.player, self.deck, success)
 
-def check_coup(player, target):
-    if player.check_player_in() == False:
+def check_player_in(player):
+    if player.num_influences() <= 0:
         return False
-    if target.check_player_in() == False:
+    return True
+
+def check_coup(player, target):
+    if check_player_in(player) == False:
+        return False
+    if check_player_in(target) == False:
         return False
     if player.coins < 7:
         return False
     return True
 
 def check_assassinate(player, target):
-    if player.check_player_in() == False:
+    if check_player_in(player) == False:
         return False
-    if target.check_player_in() == False:
+    if check_player_in(target) == False:
         return False
     if player.coins < 3:
         return False
     return True
 
 def check_steal(player, target):
-    if player.check_player_in() == False:
+    if check_player_in(player) == False:
         return False
-    if target.check_player_in() == False:
+    if check_player_in(target) == False:
         return False
     if target.coins < 1:
         return False
     return True
+
+def get_actions(player, players, deck):
+    actions = []
+    force_coup = False
+    if player.coins >= 10:
+        force_coup = True
+    if not force_coup:
+        actions.append(Action("Income", player, deck))
+        actions.append(Action("Foreign Aid", player, deck))
+        actions.append(Action("Tax", player, deck))
+        actions.append(Action("Exchange", player, deck))
+        # Each check_[action] function verifies the actor and target are in, and that the game state allows for this action to occur
+        for i in range(len(players)):
+            if i == player.id:
+                continue
+            if check_coup(player, players[i]):
+                actions.append(Action("Coup", player, deck, players[i]))
+            if check_assassinate(player, players[i]):
+                actions.append(Action("Assassinate", player, deck, players[i]))
+            if check_steal(player, players[i]):
+                actions.append(Action("Steal", player, deck, players[i]))
+    else:
+        for i in range(len(players)):
+            if i == player.id:
+                continue
+            if check_coup(player, players[i]):
+                actions.append(Action("Coup", player, deck, players[i]))
+
+    return actions
 
 def income(player, success):
     if success:
@@ -221,9 +277,9 @@ def foreign_aid(player, success):
         print(player.name + " gains 2 coins through Foreign Aid!")
         player.coins += 2
 def coup(player, target, success):
+    player.coins -= 7
+    print(player.name + " spends 7 coins to Coup!")
     if success:
-        player.coins -= 7
-        print(player.name + " spends 7 coins to Coup!")
         print(player.name + " Coups " + target.name)
         target.lose_influence() # change this to allow target to choose which card to give up
 def tax(player, success):
@@ -247,6 +303,24 @@ def steal(player, target, success):
 def exchange(player, deck, success):
     tax(player, success)
 
+# Returns a list of all possible counteractions available to a player
+# If none available, or counteractor and actor are the same player, returns a list containing just None
+def get_counteractions(c_actor, players, action):
+    counteractions = []
+    counteractions.append(None)
+    if not (c_actor == action.player):
+        if action.name == "Foreign Aid":
+            if (check_player_in(c_actor)):
+                counteractions.append(Counteraction(action, c_actor, "Duke"))
+        # It has already been checked that the action's target is still in upon creating the action
+        if action.name == "Assassinate" and c_actor == action.target:
+            counteractions.append(Counteraction(action, c_actor, "Contessa"))
+        elif action.name == "Steal" and c_actor == action.target:
+            counteractions.append(Counteraction(action, c_actor, "Ambassador"))
+            counteractions.append(Counteraction(action, c_actor, "Captain"))
+
+    return counteractions
+
 # Returns winner, loser
 def challenge_action(action, challenger):
     names = []
@@ -269,24 +343,63 @@ def challenge_counteraction(counteraction, challenger):
         return counteraction.counteractor, challenger
     return challenger, counteraction.counteractor
 
-def generate_agent(id, agent):
-    if agent == None or agent == "random":
-        return RandomAgent(id)
-    if agent == "mcts":
-        return MCTSAgent(id)
-    # COMPLETE FOR ALL AGENTS
-    if agent == "human":
-        return HumanAgent(id)
-    return RandomAgent(id)
+# Returns a list of all possible action challenges for a given player
+# If none available, or challenger and actor are same player, or the challenger is not in, returns a list containing just None
+def get_action_challenges(action, challenger, players):
+    action_challenges = []
+    action_challenges.append(None)
+    if not (challenger == action.player):
+        if action.name == "Tax" or action.name == "Assassinate" or action.name == "Steal" or action.name == "Exchange":
+            if (check_player_in(challenger)):
+                action_challenges.append(ActionChallenge(action, challenger))
+    return action_challenges
 
-# Functions to block and enable calls to print (used to speed up testing agents)
-def blockPrint():
-    sys.stdout = open(os.devnull, 'w')
-def enablePrint():
-    sys.stdout = sys.__stdout__
-def press_to_continue():
-    cont = False
-    while not cont:
-        inp = input("Press ENTER to continute: ")
-        if inp == "":
-            return
+# Returns a list of all available counteraction challenges for a given player
+# If none available, or challenger and counteractor are the same player, or challenger is not in, returns a list containing just None
+def get_counteraction_challenges(counteraction, challenger, players):
+    counteraction_challenges = []
+    counteraction_challenges.append(None)
+    if not (challenger == counteraction.counteractor):
+        if check_player_in(challenger):
+            counteraction_challenges.append(CounteractionChallenge(counteraction, challenger))
+    return counteraction_challenges
+
+def is_winner(players):
+    in_players = 0
+    for player in players:
+        if check_player_in(player):
+            in_players += 1
+    if in_players == 1:
+        return True
+    return False
+
+def get_winner(players):
+    if is_winner(players):
+        for player in players:
+            if check_player_in(player):
+                return player.id
+    else:
+        return -1
+    
+def load_game_state(string):
+    p = string.split("-")
+    num_players = int(p[0])
+    players = []
+    deck = Deck()
+    for i in range(num_players):
+        coins = p[1+5*i]
+        player = Player(i, num_players)
+        deck.deal_character(player, int(p[2+5*i]))
+        if p[3+5*i] == 0:
+            player.cards[0].showing = False
+        else:
+            player.cards[0].showing = True
+        deck.deal_character(player, int(p[4+5*i]))
+        if p[5+5*i] == 0:
+            player.cards[0].showing = False
+        else:
+            player.cards[0].showing = True
+        players.append(player)
+    
+    count = int(p[num_players*5 + 1])
+    return num_players, players, deck, count
