@@ -114,10 +114,10 @@ class TestHelpers(unittest.TestCase):
         self.deck.deal(self.p1, 2)
         self.deck.deal(self.p2, 2)
     def test_check_player_in(self):
-        self.assertTrue(check_player_in(self.p1))
+        self.assertTrue(self.p1.check_player_in())
         self.p1.cards[0].showing = True
         self.p1.cards[1].showing = True
-        self.assertFalse(check_player_in(self.p1)) 
+        self.assertFalse(self.p1.check_player_in()) 
     def test_check_coup(self):
         self.assertFalse(check_coup(self.p1, self.p2))
         self.assertFalse(check_coup(self.p2, self.p1))
@@ -146,7 +146,7 @@ class TestHelpers(unittest.TestCase):
         self.p1.lose_influence()
         self.assertFalse(check_steal(self.p1, self.p2))
     def test_get_actions_1(self):
-        actions = get_actions(self.p1, [self.p1, self.p2], self.deck)
+        actions = self.state.get_actions()
         names = [action.name for action in actions]
         self.assertIn("Income", names)
         self.assertIn("Foreign Aid", names)
@@ -157,7 +157,7 @@ class TestHelpers(unittest.TestCase):
         self.assertNotIn("Assassinate", names)
     def test_get_actions_2(self):
         self.p1.coins = 7
-        actions = get_actions(self.p1, [self.p1, self.p2], self.deck)
+        actions = self.state.get_actions()
         names = [action.name for action in actions]
         self.assertIn("Coup", names)
         self.assertIn("Income", names)
@@ -168,13 +168,13 @@ class TestHelpers(unittest.TestCase):
         self.assertIn("Assassinate", names) 
     def test_get_actions_3(self):
         self.p1.coins = 10
-        actions = get_actions(self.p1, [self.p1, self.p2], self.deck)
+        actions = actions = self.state.get_actions()
         names = [action.name for action in actions]
         self.assertIn("Coup", names)
         self.assertEqual(len(actions), 1)
     def test_get_actions_4(self):
         self.p2.coins = 0
-        actions = get_actions(self.p1, [self.p1, self.p2], self.deck)
+        actions = actions = self.state.get_actions()
         names = [action.name for action in actions]
         self.assertNotIn("Steal", names)
     

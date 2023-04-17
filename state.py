@@ -339,16 +339,17 @@ class State(object):
     
     # prints a table of the current game state that would be observable to every player
     def print_obs(self): 
-        table = [['Player Name','Coins','Inf 1', 'Inf 1 Active?', 'Inf 2', 'Inf 2 Active?']]
+        table = [['Player Name','Coins','Inf 1', 'Inf 1 Active?', 'Inf 2', 'Inf 2 Active?', 'Player Still In?']]
         for player in self.players:
             inf_1 = f"{player.cards[0] if player.cards[0].showing else 'Not Showing'}"
             inf_1_active = f"{not player.cards[0].showing}"
             inf_2 = f"{player.cards[1] if player.cards[1].showing else 'Not Showing'}"
             inf_2_active = f"{not player.cards[1].showing}"
+            still_in = f"{player.check_player_in()}"
             if player.agent.name == "Human Agent":
                 inf_1 = f"{player.cards[0]}"
                 inf_2 = f"{player.cards[1]}"
-            table.append([player.name, player.coins, inf_1, inf_1_active, inf_2, inf_2_active])
+            table.append([player.name, player.coins, inf_1, inf_1_active, inf_2, inf_2_active, still_in])
         print(tabulate(table, headers="firstrow", tablefmt="pretty"))
                 
 
