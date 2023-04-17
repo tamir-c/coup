@@ -35,6 +35,7 @@ class MCTS:
         self.id = id
         self.root_state = deepcopy(state)
         self.root = Node(None, None)
+        self.temp_actor = None
         self.run_time = 0
         self.node_count = 0
         self.num_rollouts = 0
@@ -50,7 +51,10 @@ class MCTS:
                 if c.value() > max_value:
                     max_value = c.value()
             max_nodes = [c for c in children if c.value() == max_value]
-            node = random.choice(max_nodes)
+
+            # node = random.choice(max_nodes)
+            node = random.choice(children) # RANDOMLY SELECT ONE OF THE ROOT STATE'S CHILDREN
+            # print(f"{node.action} {state.stage}")
             # select node to explore given the following:
             # if stage == 0 we are selecting an action
             # if stage == 1 we are selecting a challenge
@@ -58,12 +62,14 @@ class MCTS:
             # if stage == 3 we are selecting a counteraction challenge
 
             self.random_transition(node, state)
+            node.temp_actor = state.actor
             if node.num_sims == 0:
                 return node, state
 
         if self.expand(node, state): # if a node is being expanded for the first time
             node = random.choice(node.children)
             self.random_transition(node, state)
+            node.temp_actor = state.actor
 
         return node, state
     
@@ -75,8 +81,8 @@ class MCTS:
             return False
         if state.stage == 0:
             actions = state.get_actions()
-            print(state.actor)
-            print(actions)
+            # print(state.actor)
+            # print(actions)
         elif state.stage == 1:
             actions = state.get_action_challenges(state.players[self.id])
         elif state.stage == 2:
@@ -89,9 +95,13 @@ class MCTS:
         return True
     
     def roll_out(self, state):
-        return state.random_sim() # plays game out until the end and returns winner.id
+        for i, p in enumerate(state.players):
+            p.agent = RandomAgent(i)
+        while not state.is_winner():
+            state.transition_old() # plays game out until the end and returns winner.id
+        return state.get_winner().id
     
-    def back_propagate(self, node, turn, outcome):
+    def back_propagate(self, node, turn, outcome): # turn is WRONG! NEEDS TO BE FIXED
         if outcome == self.id: # if mcts won
             reward = 1
         else:
@@ -101,10 +111,10 @@ class MCTS:
             node.num_sims += 1
             node.num_wins += reward
             node = node.parent
-            if turn == self.id:
-                reward = 1
-            else:
-                reward = 0
+            # if node.temp_actor == self.id:
+            #     reward = 1
+            # else:
+            #     reward = 0
 
     def search(self, time_limit = 0.1):
         t_start = time.process_time()
@@ -112,7 +122,7 @@ class MCTS:
         while time.process_time() - t_start < time_limit:
             node, state = self.select_node()
             outcome = self.roll_out(state)
-            self.back_propagate(node, state.actor, outcome)
+            self.back_propagate(node, state.actor, outcome) # state.actor is WRONG! could have been causing the issues
             n_rollouts += 1
 
         run_time = time.process_time() - t_start
@@ -123,12 +133,20 @@ class MCTS:
         if self.root_state.is_winner():
             return -1
         
-        max_value = self.root.children[0].num_sims
+        # max_value = self.root.children[0].num_sims
+        # for c in self.root.children:
+        #     if c.num_sims > max_value:
+        #         max_value = c.num_sims
+        # max_nodes = [c for c in self.root.children if c.num_sims == max_value]
+        # best_child = random.choice(max_nodes)
+        max_value = self.root.children[0].num_wins
         for c in self.root.children:
-            if c.num_sims > max_value:
-                max_value = c.num_sims
-        max_nodes = [c for c in self.root.children if c.num_sims == max_value]
+            if c.num_wins > max_value:
+                max_value = c.num_wins
+        max_nodes = [c for c in self.root.children if c.num_wins == max_value]
         best_child = random.choice(max_nodes)
+        if isinstance(best_child.action, CounteractionChallenge):
+            breakpoint()
         return best_child.action
     
     def random_transition(self, node, state):

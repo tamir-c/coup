@@ -3,7 +3,7 @@ from game import *
 class State(object):
     def __init__(self, state_string = "", num_players = 2, agents={}):
         if num_players <= 1 or num_players > 6:
-            num_players = 2
+            num_players = 3
         if state_string == "":    
             self.num_players = num_players
             self.players = []
@@ -21,6 +21,7 @@ class State(object):
             self.stage = 0
 
             for i in range(self.num_players):
+                # if the player's agent is not specified it will default to RandomAgent() (set in Player init)
                 self.players.append(Player(i, self.num_players, agent=agents.get(i))) # player.id will always match player's index in players
                 self.deck.deal(self.players[i], times=2)
 
@@ -176,6 +177,101 @@ class State(object):
         if not self.is_winner():
             self.increment_turn()
 
+    # OLD transition function kept for reference
+    def transition_old(self, is_print=False):
+        if not is_print:
+            blockPrint()
+        r = list(range(self.num_players))
+        random.shuffle(r)
+
+        turn = self.actor
+        if self.players[turn].check_player_in():
+            for player in self.players:
+                print(player.name, player.coins, player.num_influences(), player.cards, player.cards[0].showing, player.cards[1].showing)
+            self.stage = 0
+            print("\n" + self.players[turn].name + "'s turn!")
+  
+            self.action = self.players[turn].agent.choice(state=self, msg="Please choose action from:")
+            print("Action taken: " + self.players[turn].name + " plays '" + self.action.__repr__() + "' claiming " + self.action.action_character)
+            self.stage = 1
+            for i in r:
+                self.challenge = self.players[i].agent.choice(state=self, msg="Please choose action challenge from:")
+                if self.challenge: # if a player has challenged, break - only one player can challenge an action in a play
+                    self.is_challenge = True
+                    break
+
+            print("Challenge taken:")
+            print(self.challenge)
+            if self.challenge: # if a challenge has occured:
+                winner, loser = challenge_action(self.challenge.action, self.challenge.challenger) # handle challenge
+                if winner == self.action.player: # if the winner is the one who was challenged
+                    # finds the card index of the actors card that won the challenge
+                    card_index = 0
+                    if winner.cards[1].name == self.action.action_character and winner.cards[1].showing == False:
+                        card_index = 1
+                    print(winner.name + " wins the challenge with " + winner.cards[card_index].name)
+                    self.action.execute(success=True)
+                    self.deck.append(winner.cards.pop(card_index))
+                    self.deck.shuffle()
+                    self.deck.deal(winner)
+                    loser.lose_influence()
+                else: # the winner is the one who challenged the action. The action fails so the actor loses an influence and play continues
+                    print(winner.name + " wins the challenge because " + loser.name + " does not have " + self.action.action_character)
+                    loser.lose_influence()
+            else: # there were no challenges so game moves to counteractions
+                self.stage = 2
+                for i in r:
+                    self.counteraction = self.players[i].agent.choice(state=self, msg="Please choose counteraction from:")
+                    print("Counteraction taken: ")
+                    print(self.counteraction)
+                    if self.counteraction:
+                        self.is_counteraction = True
+                        break
+
+                if not self.counteraction: # the action went unchallenged and no one counteracted so the action succeeds 
+                    self.action.execute(success=True)
+                else: # players can choose to challenge the counteraction
+                    self.stage = 3
+                    for i in r:
+                        self.counteraction_challenge = self.players[i].agent.choice(state=self, msg="Please choose counteraction challenge from:")
+                        if self.counteraction_challenge:
+                            self.is_counteraction_challenge = True
+                            break
+
+                    print("Challenge to counteraction taken:")
+                    print(self.counteraction_challenge)
+                    if self.counteraction_challenge:
+                        winner, loser = challenge_counteraction(self.counteraction_challenge.counteraction, self.counteraction_challenge.challenger) # handle challenge: if counteractor wins challenger loses influence 
+                        #if winner is counteractor
+                        if winner == self.counteraction_challenge.counteraction.counteractor:
+                            print(winner.__repr__() + " wins with " + self.counteraction_challenge.counteraction.claim + "!")
+                            card_index = 0
+                            if winner.cards[1].name == self.counteraction_challenge.counteraction.claim and winner.cards[1].showing == False:
+                                card_index = 1
+                            self.deck.append(winner.cards.pop(card_index))
+                            self.deck.shuffle()
+                            self.deck.deal(winner)
+                            self.action.execute(success=False)
+                            self.counteraction_challenge.challenger.lose_influence()
+                        else: # if the winner is the challenger
+                            print(winner.__repr__() + " wins because " + loser.__repr__() + " does not have " + self.counteraction_challenge.counteraction.claim + "!")
+                            self.action.execute(success=True)
+                            self.counteraction_challenge.counteraction.counteractor.lose_influence()
+
+                    else: # If no one challenges the counteraction, the counteraction succeeds so the action fails
+                        self.action.execute(success=False)
+        enablePrint()
+        self.stage = 0
+        self.action = None
+        self.challenge = None
+        self.is_challenge = False
+        self.counteraction = None
+        self.is_counteraction = False
+        self.counteraction_challenge = None
+        self.is_counteraction_challenge = False
+        if not self.is_winner():
+            self.increment_turn()
+
     # print the state for debugging purposes
     def print(self):
         for p in self.players:
@@ -184,27 +280,30 @@ class State(object):
             print(f"{p.name} has {p.cards[0]} - {s0} and {p.cards[1]} - {s1}")
     
     def random_sim(self):
+        r = list(range(self.num_players))
+        random.shuffle(r)
+
         while not self.is_winner():
             a1 = random.choice(self.get_actions())
             self.action = a1
             a2 = None
             a3 = None
-            for p in self.players:
-                a2 = random.choice(self.get_action_challenges(p))
+            for i in r:
+                a2 = random.choice(self.get_action_challenges(self.players[i]))
                 if a2:
                     self.is_challenge = True
                     self.challenge = a2
                     break
             if not a2:
-                for p in self.players:
-                    a2 = random.choice(self.get_counteractions(p))
+                for i in r:
+                    a2 = random.choice(self.get_counteractions(self.players[i]))
                     if a2:
                         self.is_counteraction = True
                         self.counteraction = a2
                         break
             if self.is_counteraction:
-                for p in self.players:
-                    a3 = random.choice(self.get_counteraction_challenges(p))
+                for i in r:
+                    a3 = random.choice(self.get_counteraction_challenges(self.players[i]))
                     if a3:
                         self.is_counteraction_challenge = True
                         self.counteraction_challenge = a3
@@ -213,97 +312,7 @@ class State(object):
         return self.get_winner().id
     
 
-# OLD transition function kept for reference
 
-# def transition(state):
-#     r = list(range(state.num_players))
-#     random.shuffle(r)
-
-#     turn = state.actor
-#     if state.players[turn].check_player_in():
-#         for player in state.players:
-#             print(player.name, player.coins, player.num_influences(), player.cards, player.cards[0].showing, player.cards[1].showing)
-#         state.stage = 0
-#         print("\n" + state.players[turn].name + "'s turn!")
-#         actions = state.get_actions()
-#         print("Possible actions:")
-#         print(actions)
-#         state.action = state.players[turn].agent.choice(actions, "Please choose action from:", state=state)
-#         print("Action taken: " + state.players[turn].name + " plays '" + state.action.__repr__() + "' claiming " + state.action.action_character)
-#         state.stage = 1
-#         for i in r:
-#             action_challenges = get_action_challenges(state.action, state.players[i], state.players)
-#             print("Possible challenges for " + state.players[i].name + ":")
-#             print(action_challenges)
-#             state.challenge = state.players[i].agent.choice(action_challenges, "Please choose action challenge from:", state=state)
-#             if not (state.challenge == None): # if a player has challenged, break - only one player can challenge an action in a play
-#                 break
-
-#         print("Challenge taken:")
-#         print(state.challenge)
-#         if not (state.challenge == None): # if a challenge has occured:
-#             winner, loser = challenge_action(state.challenge.action, state.challenge.challenger) # handle challenge
-#             if winner == state.action.player: # if the winner is the one who was challenged
-#                 # finds the card index of the actors card that won the challenge
-#                 card_index = 0
-#                 if winner.cards[1].name == state.action.action_character and winner.cards[1].showing == False:
-#                     card_index = 1
-#                 print(winner.name + " wins the challenge with " + winner.cards[card_index].name)
-#                 state.action.execute(success=True)
-#                 state.deck.append(winner.cards.pop(card_index))
-#                 state.deck.shuffle()
-#                 state.deck.deal(winner)
-#                 loser.lose_influence()
-#             else: # the winner is the one who challenged the action. The action fails so the actor loses an influence and play continues
-#                 print(winner.name + " wins the challenge because " + loser.name + " does not have " + state.action.action_character)
-#                 loser.lose_influence()
-#         else:
-#             state.stage = 2
-#             for i in r:
-#                 counteractions = state.get_counteractions(state.players[i])
-#                 print("Possible counteractions for " + state.players[i].name + ":")
-#                 print(counteractions)
-#                 state.counteraction = state.players[i].agent.choice(counteractions, "Please choose counteraction from:", state=state)
-#                 print("Counteraction taken: ")
-#                 print(state.counteraction)
-#                 if not (state.counteraction == None):
-#                     break
-
-#             if state.counteraction == None: # the action went unchallenged so if no one counteracts the action succeeds 
-#                 state.action.execute(success=True)
-#             else:
-#                 state.stage = 3
-#                 for i in r:
-#                     counteraction_challenges = get_counteraction_challenges(state.counteraction, state.players[i], state.players)
-#                     print("Possible challenges to counteraction for " + state.players[i].name + ":")
-#                     print(counteraction_challenges)
-#                     state.counteraction_challenge = state.players[i].agent.choice(counteraction_challenges, "Please choose counteraction challenge from:", state=state)
-#                     if not (state.counteraction_challenge == None):
-#                         break
-
-#                 print("Challenge to counteraction taken:")
-#                 print(state.counteraction_challenge)
-#                 if not (state.counteraction_challenge == None):
-#                     winner, loser = challenge_counteraction(state.counteraction_challenge.counteraction, state.counteraction_challenge.challenger) # handle challenge: if counteractor wins challenger loses influence 
-#                     #if winner is counteractor
-#                     if winner == state.counteraction_challenge.counteraction.counteractor:
-#                         print(winner.__repr__() + " wins with " + state.counteraction_challenge.counteraction.claim + "!")
-#                         card_index = 0
-#                         if winner.cards[1].name == state.counteraction_challenge.counteraction.claim and winner.cards[1].showing == False:
-#                             card_index = 1
-#                         state.deck.append(winner.cards.pop(card_index))
-#                         state.deck.shuffle()
-#                         state.deck.deal(winner)
-#                         state.action.execute(success=False)
-#                         state.counteraction_challenge.challenger.lose_influence()
-#                     else: # if the winner is the challenger
-#                         print(winner.__repr__() + " wins because " + loser.__repr__() + " does not have " + state.counteraction_challenge.counteraction.claim + "!")
-#                         state.action.execute(success=True)
-#                         state.counteraction_challenge.counteraction.counteractor.lose_influence()
-
-#                 else: # If no one challenges the counteraction, the counteraction succeeds so the action fails
-#                     state.action.execute(success=False)
-#     state.increment_turn()
 
 
 # def load_game_state(string):

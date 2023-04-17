@@ -1,37 +1,41 @@
 import random
-from abc import ABC, abstractmethod
 from game import *
+from mcts import *
 
-# TODO: split actions, challenges, counteractions, and counteraction challenges into lists that belong to each agent
+class MCTSAgent(object):
+    def __init__(self, id):
+        self.id = id
+        self.name = "MCTS Agent"
 
-# class Agent(ABC):
-#     def __init__(self, type=0):
-#         self.type = type
-#     @abstractmethod
-#     def choice(self):
-#         pass
-    
+    def choice(self, state, msg=""):
+        mcts = MCTS(state, self.id)
+        mcts.search()
+        return mcts.best_move()
+
 class RandomAgent(object):
     def __init__(self, id):
         self.id = id
         self.name = "Random Agent"
 
-    def choice(self, state, message=""):
-        a = None
-        if state.stage == 0 and self.id == state.actor:
-            a = random.choice(state.get_actions())
+    def choice(self, state, msg=""):
+        p = state.players[self.id]
+        if state.stage == 0:
+            if state.actor != self.id:
+                raise Exception("Error: it is not this agent's turn to choose an action!")
+            return random.choice(state.get_actions())
         elif state.stage == 1:
-            a = random.choice(get_action_challenges(state.action, state.players[self.id]))
+            return random.choice(state.get_action_challenges(p))
         elif state.stage == 2:
-            a = random.choice(state.get_counteractions(state.players[self.id]))
+            return random.choice(state.get_counteractions(p))
         elif state.stage == 3:
-            a = random.choice(get_counteraction_challenges(state.counteraction, state.players[self.id]))
-        return a
+            return random.choice(state.get_counteraction_challenges(p))
 
 class RandomNoBluffAgent(object):
     def __init__(self):
+        self.id = id
         self.name = "Random No Bluff Agent"
-    def choice(self, list, message="", state=None): # state should always be provided to this agent
+
+    def choice(self, list, msg="", state=None): # state should always be provided to this agent
         length = len(list)
         if length == 0:
             return None
@@ -48,8 +52,10 @@ class RandomNoBluffAgent(object):
     
 class RandomNoChallengeAgent(object):
     def __init__(self):
+        self.id = id
         self.name = "Random No Challenge Agent"
-    def choice(self, list, message="", state=None): # state should always be provided to this agent
+
+    def choice(self, list, msg="", state=None): # state should always be provided to this agent
         length = len(list)
         if length == 0:
             return None
@@ -59,8 +65,10 @@ class RandomNoChallengeAgent(object):
 
 class RandomNoBluffNoChallengeAgent(object):
     def __init__(self):
+        self.id = id
         self.name = "Random No Bluff No Challenge Agent"
-    def choice(self, list, message="", state=None): # state should always be provided to this agent
+
+    def choice(self, list, msg="", state=None): # state should always be provided to this agent
         length = len(list)
         if length == 0:
             return None
@@ -80,12 +88,12 @@ class RandomNoBluffNoChallengeAgent(object):
 
         return random.choice(list)
 
-
 class HumanAgent(object):
     def __init__(self):
+        self.id = id
         self.name = "Human Agent"
     # choice function for human agent
-    def choice(self, list, message="Please choose from: "):
+    def choice(self, list, msg="Please choose from: "):
         length = len(list)
         if length == 0:
             return None
@@ -99,3 +107,10 @@ class HumanAgent(object):
             if c.isdigit():
                 if int(c) in range(length):
                     return list[int(c)]
+                
+def generate_agent(id, agent):
+    if agent == None or agent == "random":
+        return RandomAgent(id)
+    # COMPLETE FOR ALL AGENTS
+    if agent == RandomNoBluffAgent():
+        pass
