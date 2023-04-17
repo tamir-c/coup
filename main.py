@@ -3,7 +3,6 @@ from game import *
 from agent import *
 from mcts import *
 
-
 # def game(state):
 #     while not state.is_winner():
 #         actions = state.get_actions()
@@ -15,16 +14,16 @@ from mcts import *
 #     return winner
 
 def main():
-    num_players = 2
-    iterations = 10000
+    num_players = 3
+    iterations = 1
     results = [0 for i in range(num_players)]
-    
+
     for i in range(iterations):
-        state = State(num_players=num_players, agents={})
+        state = State(num_players=num_players, agents={0:"human"})
         while not state.is_winner():
             state.transition_old()
-            
         results[state.get_winner().id] += 1
+
     for i in range(num_players):
         print((results[i]*100)/iterations)
 

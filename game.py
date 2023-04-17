@@ -1,5 +1,6 @@
 import random
 from agent import *
+from mcts import *
 import sys, os
 
 class Card(object):
@@ -46,12 +47,10 @@ class Deck(list):
                 break
             
 class Player(object):
-    def __init__(self, id, num_players, name=None, coins=None, agent="random"):
+    def __init__(self, id, num_players, coins=None, agent="random"):
         self.agent = generate_agent(id, agent)
         self.id = id
-        self.name = name
-        if self.name == None:
-            self.name = "Player " + str(self.id)
+        self.name = "Player " + str(self.id)
         if coins==None:
             if num_players == 2:
                 self.coins = 1
@@ -92,10 +91,8 @@ class Player(object):
             else:
                 self.cards[0].showing = True
         else: # The player loses influence 0 by default if they have two active influences
-            # lose = choice(self.cards, "Please choose card to lose and reval to the rest of the players:")
-            # lose.showing = True
             self.cards[0].showing = True
-        # print(self.name + " loses an influence!")
+        print(self.name + " loses an influence!")
 
     def check_player_in(self):
         if self.num_influences() <= 0:
@@ -217,34 +214,34 @@ def check_steal(player, target):
 
 def income(player, success):
     if success:
-        # print(player.name + " gains 1 coin through Income!")
+        print(player.name + " gains 1 coin through Income!")
         player.coins += 1
 def foreign_aid(player, success):
     if success:
-        # print(player.name + " gains 2 coins through Foreign Aid!")
+        print(player.name + " gains 2 coins through Foreign Aid!")
         player.coins += 2
 def coup(player, target, success):
     if success:
         player.coins -= 7
-        # print(player.name + " spends 7 coins to Coup!")
-        # print(player.name + " Coups " + target.name)
+        print(player.name + " spends 7 coins to Coup!")
+        print(player.name + " Coups " + target.name)
         target.lose_influence() # change this to allow target to choose which card to give up
 def tax(player, success):
     if success:
-        # print(player.name + " collects 3 coins through tax!")
+        print(player.name + " collects 3 coins through tax!")
         player.coins += 3
 def assassinate(player, target, success):
     player.coins -= 3
-    # print(player.name + " spends 3 coins to assassinate!")
+    print(player.name + " spends 3 coins to assassinate!")
     if success:
-        # print(player.name + " assassinates " + target.name)
+        print(player.name + " assassinates " + target.name)
         target.lose_influence() # change this to allow target to choose which card to give up
 def steal(player, target, success):
     if success:
         coins_to_take = 2
         if target.coins == 1:
             coins_to_take = 1
-        # print(player.name + " steals " + str(coins_to_take) + " coins from " + target.name)
+        print(player.name + " steals " + str(coins_to_take) + " coins from " + target.name)
         target.coins -= coins_to_take
         player.coins += coins_to_take
 def exchange(player, deck, success):
@@ -272,8 +269,24 @@ def challenge_counteraction(counteraction, challenger):
         return counteraction.counteractor, challenger
     return challenger, counteraction.counteractor
 
+def generate_agent(id, agent):
+    if agent == None or agent == "random":
+        return RandomAgent(id)
+    if agent == "mcts":
+        return MCTSAgent(id)
+    # COMPLETE FOR ALL AGENTS
+    if agent == "human":
+        return HumanAgent(id)
+    return RandomAgent(id)
+
 # Functions to block and enable calls to print (used to speed up testing agents)
 def blockPrint():
     sys.stdout = open(os.devnull, 'w')
 def enablePrint():
     sys.stdout = sys.__stdout__
+def press_to_continue():
+    cont = False
+    while not cont:
+        inp = input("Press ENTER to continute: ")
+        if inp == "":
+            return

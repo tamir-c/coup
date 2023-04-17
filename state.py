@@ -1,4 +1,7 @@
 from game import *
+import random
+from tabulate import tabulate
+import numpy as np
 
 class State(object):
     def __init__(self, state_string = "", num_players = 2, agents={}):
@@ -179,29 +182,39 @@ class State(object):
 
     # OLD transition function kept for reference
     def transition_old(self, is_print=False):
-        if not is_print:
-            blockPrint()
+        
+        human = False
+        for p in self.players: 
+            if p.agent.name == "Human Agent":
+                human = True
         r = list(range(self.num_players))
-        random.shuffle(r)
+        if not human: random.shuffle(r)
 
         turn = self.actor
         if self.players[turn].check_player_in():
-            for player in self.players:
-                print(player.name, player.coins, player.num_influences(), player.cards, player.cards[0].showing, player.cards[1].showing)
+           
+            self.print_obs()
+            if human: press_to_continue()
+            print("\n" + self.players[turn].__repr__() + "'s turn!")
+             # for debugging
+            # for player in self.players:
+            #     # print(player.name, player.coins, player.num_influences(), player.cards, player.cards[0].showing, player.cards[1].showing)
+            #     print(f"{player.name} {player.coins} {player.cards[0] if player.cards[0].showing else 'Not Showing'} {player.cards[1] if player.cards[1].showing else 'Not Showing'}")
+                
             self.stage = 0
-            print("\n" + self.players[turn].name + "'s turn!")
-  
-            self.action = self.players[turn].agent.choice(state=self, msg="Please choose action from:")
+            self.action = self.players[turn].agent.choice(state=self)
             print("Action taken: " + self.players[turn].name + " plays '" + self.action.__repr__() + "' claiming " + self.action.action_character)
+            if human: press_to_continue()
             self.stage = 1
             for i in r:
-                self.challenge = self.players[i].agent.choice(state=self, msg="Please choose action challenge from:")
+                self.challenge = self.players[i].agent.choice(state=self)
                 if self.challenge: # if a player has challenged, break - only one player can challenge an action in a play
                     self.is_challenge = True
                     break
 
             print("Challenge taken:")
             print(self.challenge)
+            if human: press_to_continue()
             if self.challenge: # if a challenge has occured:
                 winner, loser = challenge_action(self.challenge.action, self.challenge.challenger) # handle challenge
                 if winner == self.action.player: # if the winner is the one who was challenged
@@ -210,41 +223,50 @@ class State(object):
                     if winner.cards[1].name == self.action.action_character and winner.cards[1].showing == False:
                         card_index = 1
                     print(winner.name + " wins the challenge with " + winner.cards[card_index].name)
+                    if human: press_to_continue()
                     self.action.execute(success=True)
+                    if human: press_to_continue()
                     self.deck.append(winner.cards.pop(card_index))
                     self.deck.shuffle()
                     self.deck.deal(winner)
                     loser.lose_influence()
+                    if human: press_to_continue()
                 else: # the winner is the one who challenged the action. The action fails so the actor loses an influence and play continues
                     print(winner.name + " wins the challenge because " + loser.name + " does not have " + self.action.action_character)
+                    if human: press_to_continue()
                     loser.lose_influence()
+                    if human: press_to_continue()
             else: # there were no challenges so game moves to counteractions
                 self.stage = 2
                 for i in r:
-                    self.counteraction = self.players[i].agent.choice(state=self, msg="Please choose counteraction from:")
-                    print("Counteraction taken: ")
-                    print(self.counteraction)
+                    self.counteraction = self.players[i].agent.choice(state=self)
                     if self.counteraction:
                         self.is_counteraction = True
                         break
 
+                print("Counteraction taken: ")
+                print(self.counteraction)
+                if human: press_to_continue()
                 if not self.counteraction: # the action went unchallenged and no one counteracted so the action succeeds 
                     self.action.execute(success=True)
+                    if human: press_to_continue()
                 else: # players can choose to challenge the counteraction
                     self.stage = 3
                     for i in r:
-                        self.counteraction_challenge = self.players[i].agent.choice(state=self, msg="Please choose counteraction challenge from:")
+                        self.counteraction_challenge = self.players[i].agent.choice(state=self)
                         if self.counteraction_challenge:
                             self.is_counteraction_challenge = True
                             break
 
                     print("Challenge to counteraction taken:")
                     print(self.counteraction_challenge)
+                    if human: press_to_continue()
                     if self.counteraction_challenge:
                         winner, loser = challenge_counteraction(self.counteraction_challenge.counteraction, self.counteraction_challenge.challenger) # handle challenge: if counteractor wins challenger loses influence 
                         #if winner is counteractor
                         if winner == self.counteraction_challenge.counteraction.counteractor:
                             print(winner.__repr__() + " wins with " + self.counteraction_challenge.counteraction.claim + "!")
+                            if human: press_to_continue()
                             card_index = 0
                             if winner.cards[1].name == self.counteraction_challenge.counteraction.claim and winner.cards[1].showing == False:
                                 card_index = 1
@@ -253,14 +275,18 @@ class State(object):
                             self.deck.deal(winner)
                             self.action.execute(success=False)
                             self.counteraction_challenge.challenger.lose_influence()
+                            if human: press_to_continue()
                         else: # if the winner is the challenger
                             print(winner.__repr__() + " wins because " + loser.__repr__() + " does not have " + self.counteraction_challenge.counteraction.claim + "!")
+                            if human: press_to_continue()
                             self.action.execute(success=True)
                             self.counteraction_challenge.counteraction.counteractor.lose_influence()
+                            if human: press_to_continue()
 
                     else: # If no one challenges the counteraction, the counteraction succeeds so the action fails
                         self.action.execute(success=False)
-        enablePrint()
+                        if human: press_to_continue()
+
         self.stage = 0
         self.action = None
         self.challenge = None
@@ -311,7 +337,20 @@ class State(object):
             self.transition(a1, a2, a3)
         return self.get_winner().id
     
-
+    # prints a table of the current game state that would be observable to every player
+    def print_obs(self): 
+        table = [['Player Name','Coins','Inf 1', 'Inf 1 Active?', 'Inf 2', 'Inf 2 Active?']]
+        for player in self.players:
+            inf_1 = f"{player.cards[0] if player.cards[0].showing else 'Not Showing'}"
+            inf_1_active = f"{not player.cards[0].showing}"
+            inf_2 = f"{player.cards[1] if player.cards[1].showing else 'Not Showing'}"
+            inf_2_active = f"{not player.cards[1].showing}"
+            if player.agent.name == "Human Agent":
+                inf_1 = f"{player.cards[0]}"
+                inf_2 = f"{player.cards[1]}"
+            table.append([player.name, player.coins, inf_1, inf_1_active, inf_2, inf_2_active])
+        print(tabulate(table, headers="firstrow", tablefmt="pretty"))
+                
 
 
 

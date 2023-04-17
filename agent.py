@@ -1,23 +1,11 @@
 import random
-from game import *
-from mcts import *
-
-class MCTSAgent(object):
-    def __init__(self, id):
-        self.id = id
-        self.name = "MCTS Agent"
-
-    def choice(self, state, msg=""):
-        mcts = MCTS(state, self.id)
-        mcts.search()
-        return mcts.best_move()
 
 class RandomAgent(object):
     def __init__(self, id):
         self.id = id
         self.name = "Random Agent"
 
-    def choice(self, state, msg=""):
+    def choice(self, state):
         p = state.players[self.id]
         if state.stage == 0:
             if state.actor != self.id:
@@ -35,7 +23,7 @@ class RandomNoBluffAgent(object):
         self.id = id
         self.name = "Random No Bluff Agent"
 
-    def choice(self, list, msg="", state=None): # state should always be provided to this agent
+    def choice(self, list, state=None): # state should always be provided to this agent
         length = len(list)
         if length == 0:
             return None
@@ -55,7 +43,7 @@ class RandomNoChallengeAgent(object):
         self.id = id
         self.name = "Random No Challenge Agent"
 
-    def choice(self, list, msg="", state=None): # state should always be provided to this agent
+    def choice(self, list, state=None): # state should always be provided to this agent
         length = len(list)
         if length == 0:
             return None
@@ -68,7 +56,7 @@ class RandomNoBluffNoChallengeAgent(object):
         self.id = id
         self.name = "Random No Bluff No Challenge Agent"
 
-    def choice(self, list, msg="", state=None): # state should always be provided to this agent
+    def choice(self, list, state=None): # state should always be provided to this agent
         length = len(list)
         if length == 0:
             return None
@@ -89,28 +77,42 @@ class RandomNoBluffNoChallengeAgent(object):
         return random.choice(list)
 
 class HumanAgent(object):
-    def __init__(self):
+    def __init__(self, id):
         self.id = id
         self.name = "Human Agent"
     # choice function for human agent
-    def choice(self, list, msg="Please choose from: "):
-        length = len(list)
+    def choice(self, state):
+        p = state.players[self.id]
+        lst = None
+        prt = ""
+        if state.stage == 0:
+            if state.actor != self.id:
+                raise Exception("Error: it is not this agent's turn to choose an action!")
+            prt = "Please choose action from: "
+            lst = state.get_actions()
+        elif state.stage == 1:
+            prt = "Please choose action challenge from: "
+            lst = state.get_action_challenges(p)
+        elif state.stage == 2:
+            prt = "Please choose counteraction from: "
+            lst = state.get_counteractions(p)
+        elif state.stage == 3:
+            prt = "Please choose counteraction challenge from: "
+            lst = state.get_counteraction_challenges(p)
+        
+        length = len(lst)
         if length == 0:
             return None
         if length == 1:
-            return list[0]
-        print(message)
+            return lst[0]
+
+        print(prt)
         for i in range(length):
-            print(str(i) + ": " + list[i].__repr__())
+            print(str(i) + ": " + lst[i].__repr__())
         while True:
             c = input()
             if c.isdigit():
                 if int(c) in range(length):
-                    return list[int(c)]
-                
-def generate_agent(id, agent):
-    if agent == None or agent == "random":
-        return RandomAgent(id)
-    # COMPLETE FOR ALL AGENTS
-    if agent == RandomNoBluffAgent():
-        pass
+                    return lst[int(c)]
+            print(f"Please enter a number in the range 0 to {length-1}.")
+                    

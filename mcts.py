@@ -2,9 +2,9 @@ import random
 from copy import deepcopy
 import numpy as np
 from game import *
-from agent import *
 import time
 from state import *
+from agent import *
 
 # Significant portions of code found from
 # https://www.harrycodes.com/blog/monte-carlo-tree-search
@@ -145,8 +145,6 @@ class MCTS:
                 max_value = c.num_wins
         max_nodes = [c for c in self.root.children if c.num_wins == max_value]
         best_child = random.choice(max_nodes)
-        if isinstance(best_child.action, CounteractionChallenge):
-            breakpoint()
         return best_child.action
     
     def random_transition(self, node, state):
@@ -194,3 +192,13 @@ class MCTS:
             if node.action:
                 state.is_counteraction_challenge = True
             state.transition(state.action, state.counteraction, node.action)
+
+class MCTSAgent(object):
+    def __init__(self, id):
+        self.id = id
+        self.name = "MCTS Agent"
+
+    def choice(self, state, msg=""):
+        mcts = MCTS(state, self.id)
+        mcts.search()
+        return mcts.best_move()
