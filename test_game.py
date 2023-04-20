@@ -1,5 +1,5 @@
 import unittest
-
+from state import *
 from game import *
 
 class TestCard(unittest.TestCase):
@@ -108,11 +108,9 @@ class TestDeck(unittest.TestCase):
 
 class TestHelpers(unittest.TestCase):
     def setUp(self):
-        self.deck = Deck()
-        self.p1 = Player(0, 2)
-        self.p2 = Player(0, 2)
-        self.deck.deal(self.p1, 2)
-        self.deck.deal(self.p2, 2)
+        self.state = State(num_players=2)
+        self.p1 = self.state.players[0]
+        self.p2 = self.state.players[1]
     def test_check_player_in(self):
         self.assertTrue(self.p1.check_player_in())
         self.p1.cards[0].showing = True
@@ -242,6 +240,35 @@ class TestActions(unittest.TestCase):
         steal(self.p1, self.p2, True)
         self.assertEqual(self.p2.coins, 0)
 
+class TestChallenges(unittest.TestCase):
+    def setUp(self):
+        self.state = State(num_players=2)
+        self.state.deck.append(self.state.players[0].cards.pop())
+        self.state.deck.append(self.state.players[0].cards.pop())
+        self.state.deck.append(self.state.players[1].cards.pop())
+        self.state.deck.append(self.state.players[1].cards.pop())
+        self.state.deck.deal_character(self.state.players[0], 0) # deals duke
+        self.state.deck.deal_character(self.state.players[0], 4)
+        self.state.deck.deal_character(self.state.players[1], 1)
+        self.state.deck.deal_character(self.state.players[1], 1)
+        self.state.stage = 1
+    def test_challenge_action_1(self):
+        self.state.action = self.state.get_actions()[2] 
+        winner, loser = challenge_action(self.state.action, self.state.players[1])
+        self.assertEqual(winner, self.state.players[0])
+        self.assertEqual(loser, self.state.players[1])
+    def test_challenge_action_2(self):
+        self.state.actor = 1
+        self.state.action = self.state.get_actions()[2] 
+        winner, loser = challenge_action(self.state.action, self.state.players[0])
+        self.assertEqual(winner, self.state.players[0])
+        self.assertEqual(loser, self.state.players[1])
+    def test_challenge_action_3(self):
+        self.state.action = self.state.get_actions()[2] 
+        self.state.players[0].lose_influence()
+        winner, loser = challenge_action(self.state.action, self.state.players[1])
+        self.assertEqual(winner, self.state.players[1])
+        self.assertEqual(loser, self.state.players[0])
 
 if __name__ == '__main__':
     unittest.main()
