@@ -18,7 +18,7 @@ def choice(lst):
     for i in range(length):
         print(f"{i}: {lst[i]}")
     while True:
-        c = input()
+        c = input(f"Please enter a number in the range 0 to {length-1}: ")
         if c.isdigit():
             if int(c) in range(length):
                 return int(c)
@@ -26,6 +26,7 @@ def choice(lst):
 
 def info():
     print("Welcome to Coup!")
+    print("Please refrain from observing the code at least until after completing the playthrough.")
     print("By continuing, you are agreeing for your game data to be collected.")
     c = choice(["Consent and continue.", "Quit."])
     if c == 1:
@@ -33,7 +34,7 @@ def info():
     print("Before beginning, please carefully read the rules of Coup and refer to them throughout play: https://www.ultraboardgames.com/coup/game-rules.php")
     press_to_continue()
     name = input("Please enter your full name: ")
-    email = input("Please enter your email if you wish to recieve a copy of the data saved.\nEnsure email entered is valid or simply press ENTER to continue: ")
+    email = input("Please enter your email if you wish to receive a copy of the data saved. You will be sent a test email to verify it works which you can discard.\nEnsure email entered is valid or input nothing and simply press ENTER to continue: ")
     print("Please enter your experience with Coup:")
     xp = choice(["First time playing.", "Played before a few times.", "Have played fairly regularly before.", "I have played Coup a lot.", "I consider myself very skilled at Coup."])
     print("You will be playing 3 games of Coup as 'Player 0' against two computer players.")
@@ -64,7 +65,7 @@ def send_results(data, cc = None):
 
 def main():
     name, email, xp = info()
-    sent = send_results(name, cc = email)
+    sent = send_results(f"Test email for {name}. Please feel free to delete.", cc = email)
     if sent != {}:
         raise Exception("Test email could not be sent so results will not get through. Please contact sc20tc@leeds.ac.uk for advice.")
     num_players = 3
