@@ -271,13 +271,17 @@ def challenge_counteraction(counteraction, challenger):
     return challenger, counteraction.counteractor
 
 def generate_agent(id, agent):
+     # COMPLETE FOR ALL AGENTS
     if agent == None or agent == "random":
         return RandomAgent(id)
-    if agent == "mcts":
-        return MCTSAgent(id)
-    # COMPLETE FOR ALL AGENTS
+    if agent == None or agent == "random_no_bluff":
+        return RandomNoBluffAgent(id)
     if agent == "human":
         return HumanAgent(id)
+    if agent == "random_bluff_bias":
+        return RandomBluffBias(id)
+    if agent == "mcts":
+        return MCTSAgent(id)
     if agent == "look_ahead":
         return LookAheadAgent(id)
     return RandomAgent(id)

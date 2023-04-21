@@ -15,14 +15,16 @@ from mcts import *
 
 def main():
     num_players = 3
-    iterations = 1
+    iterations = 10000
     results = [0 for i in range(num_players)]
 
+    blockPrint()
     for i in range(iterations):
-        state = State(num_players=num_players, agents={0:"look_ahead"})
+        state = State(num_players=num_players, agents={0:"random_bluff_bias"})
         while not state.is_winner():
             state.transition_old()
         results[state.get_winner().id] += 1
+    enablePrint()
 
     for i in range(num_players):
         print((results[i]*100)/iterations)
