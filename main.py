@@ -22,7 +22,6 @@ def choice(lst):
         if c.isdigit():
             if int(c) in range(length):
                 return int(c)
-        print(f"Please enter a number in the range 0 to {length-1}.")
 
 def info():
     print("Welcome to Coup!")

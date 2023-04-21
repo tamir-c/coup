@@ -1,3 +1,5 @@
+Please refrain from observing the code for the integrity of the test.
+
 Instructions to run on Windows / Linux:
 -install Python3 (game developed on Python 3.11.1)
 -open command prompt and cd to folder "coup" containing this readme and the source code
