@@ -31,6 +31,10 @@ def info():
     c = choice(["Consent and continue.", "Quit."])
     if c == 1:
         quit()
+    print("Please confirm you have not inspected the code and are unaware of the strategies your opponents will implement.")
+    c = choice(["I confirm", "I can no longer participate in this experiment"])
+    if c == 1:
+        quit()
     print("Before beginning, please carefully read the rules of Coup and refer to them throughout play: https://www.ultraboardgames.com/coup/game-rules.php")
     press_to_continue()
     name = input("Please enter your full name: ")
