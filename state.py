@@ -111,7 +111,7 @@ class State(object):
         for player in self.players:
             if player.check_player_in():
                 in_players += 1
-        if in_players == 1:
+        if in_players <= 1:
             return True
         return False
     
@@ -125,14 +125,14 @@ class State(object):
 
     def transition(self, a1, a2, a3):
         if self.is_winner():
-            return self
+            return
 
         # r = list(range(self.num_players))
         # random.shuffle(r)
         turn = self.actor
         if self.players[turn].check_player_in():
 
-            if (self.is_challenge): # if a challenge has occured:
+            if (self.challenge): # if a challenge has occured:
                 winner, loser = challenge_action(a2.action, a2.challenger) # handle challenge
                 if winner == a1.player: # if the winner is the one who was challenged
                     # finds the card index of the actors card that won the challenge
@@ -151,7 +151,7 @@ class State(object):
                 if a2 == None: # the action went unchallenged so if no one counteracts the action succeeds 
                     self.action.execute(success=True)
                 else: # a2 stores the counteraction
-                    if self.is_counteraction_challenge:
+                    if self.counteraction_challenge:
                         winner, loser = challenge_counteraction(a3.counteraction, a3.challenger) # handle challenge: if counteractor wins challenger loses influence 
                         #if winner is counteractor
                         if winner == a3.counteraction.counteractor:
@@ -182,6 +182,9 @@ class State(object):
 
     # OLD transition function kept for reference
     def transition_old(self, is_print=False):
+
+        if self.is_winner():
+            return
         
         human = False
         for p in self.players: 
@@ -203,13 +206,15 @@ class State(object):
                 
             self.stage = 0
             self.action = self.players[turn].agent.choice(state=self)
+
+            print(self.action)
+            print(self.is_winner())
             print("Action taken: " + self.players[turn].name + " plays '" + self.action.__repr__() + "' claiming " + self.action.action_character)
             if human: press_to_continue()
             self.stage = 1
             for i in r:
                 self.challenge = self.players[i].agent.choice(state=self)
                 if self.challenge: # if a player has challenged, break - only one player can challenge an action in a play
-                    self.is_challenge = True
                     break
 
             print("Challenge taken:")
@@ -241,7 +246,6 @@ class State(object):
                 for i in r:
                     self.counteraction = self.players[i].agent.choice(state=self)
                     if self.counteraction:
-                        self.is_counteraction = True
                         break
 
                 print("Counteraction taken: ")
@@ -255,7 +259,6 @@ class State(object):
                     for i in r:
                         self.counteraction_challenge = self.players[i].agent.choice(state=self)
                         if self.counteraction_challenge:
-                            self.is_counteraction_challenge = True
                             break
 
                     print("Challenge to counteraction taken:")
@@ -290,11 +293,8 @@ class State(object):
         self.stage = 0
         self.action = None
         self.challenge = None
-        self.is_challenge = False
         self.counteraction = None
-        self.is_counteraction = False
         self.counteraction_challenge = None
-        self.is_counteraction_challenge = False
         if not self.is_winner():
             self.increment_turn()
 
@@ -305,37 +305,82 @@ class State(object):
             s1 = "showing" if p.cards[1].showing else "not showing"
             print(f"{p.name} has {p.cards[0]} - {s0} and {p.cards[1]} - {s1}")
     
-    def random_sim(self):
-        r = list(range(self.num_players))
-        random.shuffle(r)
+    # def random_sim(self):
+    #     r = list(range(self.num_players))
+    #     random.shuffle(r)
 
-        while not self.is_winner():
-            a1 = random.choice(self.get_actions())
-            self.action = a1
-            a2 = None
-            a3 = None
-            for i in r:
-                a2 = random.choice(self.get_action_challenges(self.players[i]))
+    #     while not self.is_winner():
+    #         a1 = random.choice(self.get_actions())
+    #         self.action = a1
+    #         a2 = None
+    #         a3 = None
+    #         for i in r:
+    #             a2 = random.choice(self.get_action_challenges(self.players[i]))
+    #             if a2:
+    #                 self.is_challenge = True
+    #                 self.challenge = a2
+    #                 break
+    #         if not a2:
+    #             for i in r:
+    #                 a2 = random.choice(self.get_counteractions(self.players[i]))
+    #                 if a2:
+    #                     self.is_counteraction = True
+    #                     self.counteraction = a2
+    #                     break
+    #         if self.is_counteraction:
+    #             for i in r:
+    #                 a3 = random.choice(self.get_counteraction_challenges(self.players[i]))
+    #                 if a3:
+    #                     self.is_counteraction_challenge = True
+    #                     self.counteraction_challenge = a3
+    #                     break
+    #         self.transition(a1, a2, a3)
+    #     return self.get_winner().id
+    
+    def random_transition(self, node):
+        if self.is_winner():
+            for player in self.players:
+                print(player.num_influences())
+            raise Exception("This is a terminal state!")
+        a2 = None
+        a3 = None
+        if self.stage == 0:
+            self.action = node.action
+            for p in self.players:
+                a2 = random.choice(self.get_action_challenges(p))
                 if a2:
-                    self.is_challenge = True
                     self.challenge = a2
                     break
-            if not a2:
-                for i in r:
-                    a2 = random.choice(self.get_counteractions(self.players[i]))
+            if not self.challenge:
+                for p in self.players:
+                    a2 = random.choice(self.get_counteractions(p))
                     if a2:
-                        self.is_counteraction = True
                         self.counteraction = a2
                         break
-            if self.is_counteraction:
-                for i in r:
-                    a3 = random.choice(self.get_counteraction_challenges(self.players[i]))
+            if self.counteraction:
+                for p in self.players:
+                    a3 = random.choice(self.get_counteraction_challenges(p))
                     if a3:
-                        self.is_counteraction_challenge = True
                         self.counteraction_challenge = a3
                         break
-            self.transition(a1, a2, a3)
-        return self.get_winner().id
+            return self.transition(self.action, a2, a3)
+        elif self.stage == 1: # choosing whether to challenge or not
+            if node.action:
+                self.challenge = node.action
+            return self.transition(self.action, self.challenge, None)
+        elif self.stage == 2: # choosing whether to counteract or not. We assume we might choose to challenge counteraction if made independently or counteracting
+            if node.action:
+                self.counteraction = node.action
+            for p in self.players:
+                a3 = random.choice(self.get_counteraction_challenges(p))
+                if a3:
+                    self.counteraction_challenge = a3
+                    break
+            return self.transition(self.action, self.counteraction, a3)
+        elif self.stage == 3: # chosing whether to challenge counteraction or not
+            if node.action:
+                self.counteraction_challenge = node.action
+            return self.transition(self.action, self.counteraction, self.counteraction_challenge)
     
     # prints a table of the current game state that would be observable to every player
     def print_obs(self): 

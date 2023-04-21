@@ -1,6 +1,7 @@
 import random
 from agent import *
 from mcts import *
+from look_ahead import *
 import sys, os
 
 class Card(object):
@@ -277,6 +278,8 @@ def generate_agent(id, agent):
     # COMPLETE FOR ALL AGENTS
     if agent == "human":
         return HumanAgent(id)
+    if agent == "look_ahead":
+        return LookAheadAgent(id)
     return RandomAgent(id)
 
 # Functions to block and enable calls to print (used to speed up testing agents)
