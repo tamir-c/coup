@@ -278,6 +278,8 @@ def generate_agent(id, agent):
         return HumanAgent(id)
     if agent == "random_bluff_bias":
         return RandomBluffBias(id)
+    if agent == "random_no_bluff_no_challenge":
+        return RandomNoBluffNoChallengeAgent(id)
 
 # Functions to block and enable calls to print (used to speed up testing agents)
 def blockPrint():

@@ -1,7 +1,7 @@
 from state import *
 from game import *
 from agent import *
-import time
+import datetime as dt
 from email.message import EmailMessage
 import smtplib
 import ssl
@@ -45,13 +45,15 @@ def info():
     press_to_continue()
     return name, email, xp
 
-def send_results(data, cc = None):
+def send_results(data, cc = None, test = False):
     sender = "coupresults@gmail.com"
     receiver = []
     receiver.append("coupresults@gmail.com")
     if cc:
         receiver.append(cc)
-    subject = "Test email"
+    subject = "Your Coup Results"
+    if test:
+        subject = "Test email"
     body = data
 
     em = EmailMessage()
@@ -68,17 +70,18 @@ def send_results(data, cc = None):
 
 def main():
     name, email, xp = info()
-    sent = send_results(f"Test email for {name}. Please feel free to delete.", cc = email)
+    sent = send_results(f"Test email for {name}. Please feel free to delete.", cc = email, test = True)
     if sent != {}:
         raise Exception("Test email could not be sent so results will not get through. Please contact sc20tc@leeds.ac.uk for advice.")
     num_players = 3
-    iterations = 3
-    results = [-1, -1, -1]
+    iterations = 4
+    results = [-1, -1, -1, -1]
     states = [State(num_players=num_players, agents={0:"human"}),
             State(num_players=num_players, agents={0:"human",1:"random_no_bluff",2:"random_no_bluff"}),
-            State(num_players=num_players, agents={0:"human",1:"random_bluff_bias",2:"random_bluff_bias"})]
+            State(num_players=num_players, agents={0:"human",1:"random_bluff_bias",2:"random_bluff_bias"}),
+            State(num_players=num_players, agents={0:"human",1:"random_no_bluff_no_challenge",2:"random_no_bluff_no_challenge"})]
 
-    t_start = time.process_time()
+    t_start = dt.datetime.now()
     for i in range(iterations):
         print(f"Game {i+1}!\n")
         state = states[i]
@@ -87,17 +90,20 @@ def main():
         winner = state.get_winner().id
         results[i] = winner
         print(f"Player {winner} wins the game!")
-    t_elapsed = time.process_time() - t_start
+    t_stop = dt.datetime.now()
+    t_elapsed = ((t_start-t_stop).microseconds)/1e6
     s1 = f"Name: {name}."
     s2 = f"Experience level: {xp}."
     s3 = f"Game 1 winner (against 2 random agents): {results[0]}."
     s4 = f"Game 2 winner (against 2 agents which never bluffed): {results[1]}."
     s5 = f"Game 3 winner (against 2 agents which bluffed 30% of the time): {results[2]}."
-    s6 = f"Time elapsed: {t_elapsed}."
-    data = f"{s1}\n{s2}\n{s3}\n{s4}\n{s5}\n{s6}"
+    s6 = f"Game 4 winner (against 2 agents which never bluffed and never challenged): {results[3]}."
+    s7 = f"Time elapsed (s): {t_elapsed}."
+    data = f"{s1}\n{s2}\n{s3}\n{s4}\n{s5}\n{s6}\n{s7}"
     send_results(data, cc = email)
     print("\n\n")
     print(data)
+    print("The above results have been sent!")
     print("Thank you very much for your time! I hope you enjoyed playing.\n\n")
     print("You may now close the application.")
 
