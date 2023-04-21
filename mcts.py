@@ -61,14 +61,14 @@ class MCTS:
             # if stage == 2 we are selecting a counteraction
             # if stage == 3 we are selecting a counteraction challenge
 
-            self.random_transition(node, state)
+            state.random_transition(node)
             node.temp_actor = state.actor
             if node.num_sims == 0:
                 return node, state
 
         if self.expand(node, state): # if a node is being expanded for the first time
             node = random.choice(node.children)
-            self.random_transition(node, state)
+            state.random_transition(node)
             node.temp_actor = state.actor
 
         return node, state
@@ -146,52 +146,6 @@ class MCTS:
         max_nodes = [c for c in self.root.children if c.num_wins == max_value]
         best_child = random.choice(max_nodes)
         return best_child.action
-    
-    def random_transition(self, node, state):
-        a2 = None
-        a3 = None
-        if state.stage == 0:
-            state.action = node.action
-            for p in state.players:
-                a2 = random.choice(state.get_action_challenges(p))
-                if a2:
-                    state.is_challenge = True
-                    state.is_counteraction = False
-                    state.challenge = a2
-                    break
-            if not state.is_challenge:
-                for p in state.players:
-                    a2 = random.choice(state.get_counteractions(p))
-                    if a2:
-                        state.is_counteraction = True
-                        state.is_challenge = False
-                        state.counteraction = a2
-                        break
-            if state.is_counteraction:
-                for p in state.players:
-                    a3 = random.choice(state.get_counteraction_challenges(p))
-                    if a3:
-                        state.is_counteraction_challenge = True
-                        break
-            state.transition(state.action, a2, a3)
-        elif state.stage == 1: # choosing whether to challenge or not
-            if node.action:
-                state.is_challenge = True
-            state.transition(state.action, node.action, None)
-        elif state.stage == 2: # choosing whether to counteract or not. We assume we might choose to challenge counteraction if made independently or counteracting
-            if node.action:
-                state.is_counteraction = True
-                state.counteraction = node.action
-            for p in state.players:
-                a3 = random.choice(state.get_counteraction_challenges(p))
-                if a3:
-                    state.is_counteraction_challenge = True
-                    break
-            state.transition(state.action, node.action, a3)
-        elif state.stage == 3: # chosing whether to challenge counteraction or not
-            if node.action:
-                state.is_counteraction_challenge = True
-            state.transition(state.action, state.counteraction, node.action)
 
 class MCTSAgent(object):
     def __init__(self, id):
@@ -199,6 +153,8 @@ class MCTSAgent(object):
         self.name = "MCTS Agent"
 
     def choice(self, state, msg=""):
+        if not state.players[self.id].check_player_in():
+            return None
         mcts = MCTS(state, self.id)
         mcts.search()
         return mcts.best_move()

@@ -19,7 +19,7 @@ def main():
     results = [0 for i in range(num_players)]
 
     for i in range(iterations):
-        state = State(num_players=num_players, agents={0:"human"})
+        state = State(num_players=num_players, agents={0:"look_ahead"})
         while not state.is_winner():
             state.transition_old()
         results[state.get_winner().id] += 1
