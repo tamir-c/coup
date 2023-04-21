@@ -19,7 +19,7 @@ class RandomAgent(object):
             return random.choice(state.get_counteraction_challenges(p))
 
 class RandomNoBluffAgent(object):
-    def __init__(self):
+    def __init__(self, id):
         self.id = id
         self.name = "Random No Bluff Agent"
 
@@ -55,7 +55,7 @@ class RandomNoBluffAgent(object):
 class RandomBluffBias(object):
     def __init__(self, id):
         self.id = id
-        self.name = "Random No Bluff Agent"
+        self.name = "Random Bluff Bias Agent"
 
     def choice(self, state, bias = 0.3): # bias: 0 never bluffs. 1 always bluffs.
         p = state.players[self.id]
@@ -90,44 +90,6 @@ class RandomBluffBias(object):
             return random.choice(bluffs)
         return random.choice(lst)
     
-class RandomNoChallengeAgent(object):
-    def __init__(self):
-        self.id = id
-        self.name = "Random No Challenge Agent"
-
-    def choice(self, list, state=None): # state should always be provided to this agent
-        length = len(list)
-        if length == 0:
-            return None
-        if state.stage == 1 or state.stage == 3:
-            return None
-        return random.choice(list)
-
-class RandomNoBluffNoChallengeAgent(object):
-    def __init__(self):
-        self.id = id
-        self.name = "Random No Bluff No Challenge Agent"
-
-    def choice(self, list, state=None): # state should always be provided to this agent
-        length = len(list)
-        if length == 0:
-            return None
-        
-        if state.stage == 1 or state.stage == 3:
-            return None
-        
-        for i, item in enumerate(list):
-            if state.stage == 0: # if choosing an action
-                if item.action_character != "General Action":
-                    if not (item.action_character in item.player.get_active_action_characters()):
-                        list.pop(i)
-            elif state.stage == 2: # if choosing a counteraction
-                if item != None:
-                    if not (item.claim in item.counteractor.get_active_action_characters()):
-                        list.pop(i)
-
-        return random.choice(list)
-
 class HumanAgent(object):
     def __init__(self, id):
         self.id = id
@@ -168,3 +130,41 @@ class HumanAgent(object):
                     return lst[int(c)]
             print(f"Please enter a number in the range 0 to {length-1}.")
                     
+    
+# class RandomNoChallengeAgent(object):
+#     def __init__(self):
+#         self.id = id
+#         self.name = "Random No Challenge Agent"
+
+#     def choice(self, list, state=None): # state should always be provided to this agent
+#         length = len(list)
+#         if length == 0:
+#             return None
+#         if state.stage == 1 or state.stage == 3:
+#             return None
+#         return random.choice(list)
+
+# class RandomNoBluffNoChallengeAgent(object):
+#     def __init__(self):
+#         self.id = id
+#         self.name = "Random No Bluff No Challenge Agent"
+
+#     def choice(self, list, state=None): # state should always be provided to this agent
+#         length = len(list)
+#         if length == 0:
+#             return None
+        
+#         if state.stage == 1 or state.stage == 3:
+#             return None
+        
+#         for i, item in enumerate(list):
+#             if state.stage == 0: # if choosing an action
+#                 if item.action_character != "General Action":
+#                     if not (item.action_character in item.player.get_active_action_characters()):
+#                         list.pop(i)
+#             elif state.stage == 2: # if choosing a counteraction
+#                 if item != None:
+#                     if not (item.claim in item.counteractor.get_active_action_characters()):
+#                         list.pop(i)
+
+#         return random.choice(list)
