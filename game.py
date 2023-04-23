@@ -1,7 +1,5 @@
 import random
 from agent import *
-from mcts import *
-from look_ahead import *
 import sys, os
 
 class Card(object):
@@ -280,11 +278,8 @@ def generate_agent(id, agent):
         return HumanAgent(id)
     if agent == "random_bluff_bias":
         return RandomBluffBias(id)
-    if agent == "mcts":
-        return MCTSAgent(id)
-    if agent == "look_ahead":
-        return LookAheadAgent(id)
-    return RandomAgent(id)
+    if agent == "random_no_bluff_no_challenge":
+        return RandomNoBluffNoChallengeAgent(id)
 
 # Functions to block and enable calls to print (used to speed up testing agents)
 def blockPrint():
@@ -294,6 +289,6 @@ def enablePrint():
 def press_to_continue():
     cont = False
     while not cont:
-        inp = input("Press ENTER to continute: ")
+        inp = input("Press ENTER to continue: ")
         if inp == "":
             return
