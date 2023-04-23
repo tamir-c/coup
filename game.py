@@ -284,6 +284,8 @@ def generate_agent(id, agent):
         return MCTSAgent(id)
     if agent == "look_ahead":
         return LookAheadAgent(id)
+    if agent == "random_no_bluff_no_challenge":
+        return RandomNoBluffNoChallengeAgent(id)
     return RandomAgent(id)
 
 # Functions to block and enable calls to print (used to speed up testing agents)
