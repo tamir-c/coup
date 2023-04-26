@@ -94,7 +94,7 @@ class MCTS:
             node = node.parent
   
 
-    def search(self, time_limit = 0.01):
+    def search(self, time_limit = 0.05):
         t_start = time.process_time()
         self.expand(self.root, self.root_state)
         n_rollouts = 0

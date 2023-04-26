@@ -18,7 +18,7 @@ import numpy as np
 
 def main():
     num_players = 3
-    iterations = 100
+    iterations = 10
     results = [0 for i in range(num_players)]
     blockPrint()
     t_start = time.perf_counter()
