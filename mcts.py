@@ -10,9 +10,9 @@ from agent import *
 # https://www.harrycodes.com/blog/monte-carlo-tree-search
 
 class Node:
-    def __init__(self, action, parent):
-        self.action = action
+    def __init__(self, parent, index):
         self.parent = parent
+        self.index = index
         self.num_sims = 0
         self.num_wins = 0
         self.children = []
@@ -34,65 +34,47 @@ class MCTS:
     def __init__(self, state, id = 0):
         self.id = id
         self.root_state = deepcopy(state)
-        self.root = Node(None, None)
-        self.temp_actor = None
+        self.original_state = state
+        self.root = Node(None, 0)
         self.run_time = 0
         self.node_count = 0
         self.num_rollouts = 0
 
     def select_node(self):
-        node = self.root
         state = deepcopy(self.root_state)
-
-        while len(node.children) != 0: # these nodes have already been expanded
-            children = node.children
-            max_value = children[0].value()
-            for c in children:
-                if c.value() > max_value:
-                    max_value = c.value()
-            max_nodes = [c for c in children if c.value() == max_value]
-
-            # node = random.choice(max_nodes)
-            node = random.choice(children) # RANDOMLY SELECT ONE OF THE ROOT STATE'S CHILDREN
-            # print(f"{node.action} {state.stage}")
-            # select node to explore given the following:
-            # if stage == 0 we are selecting an action
-            # if stage == 1 we are selecting a challenge
-            # if stage == 2 we are selecting a counteraction
-            # if stage == 3 we are selecting a counteraction challenge
-
-            state.random_transition(node)
-            node.temp_actor = state.actor
-            if node.num_sims == 0:
-                return node, state
-
-        if self.expand(node, state): # if a node is being expanded for the first time
-            node = random.choice(node.children)
-            state.random_transition(node)
-            node.temp_actor = state.actor
-
+        children = self.root.children
+        max_value = children[0].value()
+        for c in children:
+            if c.value() > max_value:
+                max_value = c.value()
+        max_nodes = [c for c in children if c.value() == max_value]
+        node = random.choice(max_nodes)
+        action = self.get_actions(state)[node.index]
+        state.random_transition(action)
+        if node.num_sims == 0:
+            return node, state
         return node, state
     
-    # are we expanding too deep such that nodes and states do not always coincide with the same player's turn?
     def expand(self, parent, state): 
         if state.is_winner():
             return False
         if parent != self.root:
             return False
+        actions = self.get_actions(state)
+        children = [Node(parent, i) for i in range(len(actions))]
+        parent.add_children(children)
+        return True
+    
+    def get_actions(self, state):
         if state.stage == 0:
             actions = state.get_actions()
-            # print(state.actor)
-            # print(actions)
         elif state.stage == 1:
             actions = state.get_action_challenges(state.players[self.id])
         elif state.stage == 2:
             actions = state.get_counteractions(state.players[self.id])
         elif state.stage == 3:
             actions = state.get_counteraction_challenges(state.players[self.id])
-        children = [Node(action, parent) for action in actions]
-        parent.add_children(children)
-        self.node_count += len(children)
-        return True
+        return actions
     
     def roll_out(self, state):
         for i, p in enumerate(state.players):
@@ -106,18 +88,15 @@ class MCTS:
             reward = 1
         else:
             reward = 0
-        
         while node is not None:
             node.num_sims += 1
             node.num_wins += reward
             node = node.parent
-            # if node.temp_actor == self.id:
-            #     reward = 1
-            # else:
-            #     reward = 0
+  
 
-    def search(self, time_limit = 0.1):
+    def search(self, time_limit = 0.01):
         t_start = time.process_time()
+        self.expand(self.root, self.root_state)
         n_rollouts = 0
         while time.process_time() - t_start < time_limit:
             node, state = self.select_node()
@@ -133,19 +112,13 @@ class MCTS:
         if self.root_state.is_winner():
             return -1
         
-        # max_value = self.root.children[0].num_sims
-        # for c in self.root.children:
-        #     if c.num_sims > max_value:
-        #         max_value = c.num_sims
-        # max_nodes = [c for c in self.root.children if c.num_sims == max_value]
-        # best_child = random.choice(max_nodes)
-        max_value = self.root.children[0].num_wins
+        max_value = self.root.children[0].num_sims
         for c in self.root.children:
-            if c.num_wins > max_value:
-                max_value = c.num_wins
-        max_nodes = [c for c in self.root.children if c.num_wins == max_value]
-        best_child = random.choice(max_nodes)
-        return best_child.action
+            if c.num_sims > max_value:
+                max_value = c.num_sims
+        max_nodes = [c for c in self.root.children if c.num_sims == max_value]
+        best_child = self.get_actions(self.original_state)[random.choice(max_nodes).index]
+        return best_child
 
 class MCTSAgent(object):
     def __init__(self, id):

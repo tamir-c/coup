@@ -1,6 +1,12 @@
 import random
+from abc import ABC, abstractmethod
 
-class RandomAgent(object):
+class BaseAgent(ABC):
+    @abstractmethod
+    def choice(self, state):
+        pass
+
+class RandomAgent(BaseAgent):
     def __init__(self, id):
         self.id = id
         self.name = "Random Agent"
@@ -134,6 +140,23 @@ class RandomNoBluffNoChallengeAgent(object):
                     if not (item.claim in item.counteractor.get_active_action_characters()):
                         lst.pop(i)
         return random.choice(lst)
+
+class IncomeAgent(BaseAgent):
+    def __init__(self, id):
+        self.id = id
+        self.name = "Income Agent"
+
+    def choice(self, state):
+        if state.stage == 0:
+            if state.actor != self.id:
+                raise Exception("Error: it is not this agent's turn to choose an action!")
+            return state.get_actions()[0]
+        elif state.stage == 1:
+            return None
+        elif state.stage == 2:
+            return None
+        elif state.stage == 3:
+            return None
 
 class HumanAgent(object):
     def __init__(self, id):

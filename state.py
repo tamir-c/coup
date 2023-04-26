@@ -126,7 +126,6 @@ class State(object):
     def transition(self, a1, a2, a3):
         if self.is_winner():
             return
-
         # r = list(range(self.num_players))
         # random.shuffle(r)
         turn = self.actor
@@ -192,6 +191,7 @@ class State(object):
                 human = True
         r = list(range(self.num_players))
         if not human: random.shuffle(r)
+        random.shuffle(r)
 
         turn = self.actor
         if self.players[turn].check_player_in():
@@ -337,7 +337,7 @@ class State(object):
     #         self.transition(a1, a2, a3)
     #     return self.get_winner().id
     
-    def random_transition(self, node):
+    def random_transition(self, action):
         if self.is_winner():
             for player in self.players:
                 print(player.num_influences())
@@ -345,7 +345,7 @@ class State(object):
         a2 = None
         a3 = None
         if self.stage == 0:
-            self.action = node.action
+            self.action = action
             for p in self.players:
                 a2 = random.choice(self.get_action_challenges(p))
                 if a2:
@@ -365,12 +365,12 @@ class State(object):
                         break
             return self.transition(self.action, a2, a3)
         elif self.stage == 1: # choosing whether to challenge or not
-            if node.action:
-                self.challenge = node.action
+            if action:
+                self.challenge = action
             return self.transition(self.action, self.challenge, None)
         elif self.stage == 2: # choosing whether to counteract or not. We assume we might choose to challenge counteraction if made independently or counteracting
-            if node.action:
-                self.counteraction = node.action
+            if action:
+                self.counteraction = action
             for p in self.players:
                 a3 = random.choice(self.get_counteraction_challenges(p))
                 if a3:
@@ -378,8 +378,8 @@ class State(object):
                     break
             return self.transition(self.action, self.counteraction, a3)
         elif self.stage == 3: # chosing whether to challenge counteraction or not
-            if node.action:
-                self.counteraction_challenge = node.action
+            if action:
+                self.counteraction_challenge = action
             return self.transition(self.action, self.counteraction, self.counteraction_challenge)
     
     # prints a table of the current game state that would be observable to every player
