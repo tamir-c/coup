@@ -150,7 +150,11 @@ class IncomeAgent(BaseAgent):
         if state.stage == 0:
             if state.actor != self.id:
                 raise Exception("Error: it is not this agent's turn to choose an action!")
-            return state.get_actions()[0]
+            actions = state.get_actions()
+            a = actions[0]
+            if a.name == "Coup":
+                return random.choice(actions)
+            return a
         elif state.stage == 1:
             return None
         elif state.stage == 2:

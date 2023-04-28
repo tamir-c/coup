@@ -99,8 +99,8 @@ class State(object):
         counteraction_challenges.append(None)
         if self.counteraction == None:
             return counteraction_challenges
-        if challenger == self.counteraction.action.player: # IMPORTANT: we modify the game so the actor cannot challenge a counteraction, making the transitions easier to model
-            return counteraction_challenges
+        # if challenger == self.counteraction.action.player: # IMPORTANT: we modify the game so the actor cannot challenge a counteraction, making the transitions easier to model
+        #     return counteraction_challenges
         if challenger != self.counteraction.counteractor:
             if challenger.check_player_in():
                 counteraction_challenges.append(CounteractionChallenge(self.counteraction, challenger))

@@ -18,12 +18,12 @@ import numpy as np
 
 def main():
     num_players = 3
-    iterations = 10
+    iterations = 100
     results = [0 for i in range(num_players)]
     blockPrint()
     t_start = time.perf_counter()
     for i in range(iterations):
-        state = State(num_players=num_players, agents={0:"mcts", 1:"random_no_bluff_no_challenge", 2:"random_no_bluff_no_challenge"})
+        state = State(num_players=num_players, agents={0:"income", 1:"income", 2:"income"})
         while not state.is_winner():
             state.transition_old()
         results[state.get_winner().id] += 1
@@ -31,8 +31,8 @@ def main():
     t_stop = time.perf_counter()
     t_elapsed = t_stop-t_start
     print(f"Time (s): {t_elapsed}")
-    print(f"Num sims per search: {np.mean(num_sims)}")
-    print(f"Num searches per game : {len(num_sims)/iterations}")
+    # print(f"Num sims per search: {np.mean(mcts_num_sims)}")
+    # print(f"Num searches per game : {len(mcts_num_sims)/iterations}")
 
     for i in range(num_players):
         print((results[i]*100)/iterations)

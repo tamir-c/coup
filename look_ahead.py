@@ -4,7 +4,7 @@ from game import *
 import time
 from agent import *
 
-num_sims = []
+la_num_sims = []
 
 class Combo:
     def __init__(self, state, actions):
@@ -70,8 +70,8 @@ class LookAhead:
                 i = 0
         self.run_time = time.process_time() - t_start
         
-        global num_sims
-        num_sims.append(self.root.num_sims)
+        global la_num_sims
+        la_num_sims.append(self.root.num_sims)
 
 
     def best_move(self):

@@ -9,6 +9,8 @@ from agent import *
 # Significant portions of code found from
 # https://www.harrycodes.com/blog/monte-carlo-tree-search
 
+mcts_num_sims = [] # number of simulations per 
+
 class Node:
     def __init__(self, parent, index):
         self.parent = parent
@@ -83,7 +85,7 @@ class MCTS:
             state.transition_old() # plays game out until the end and returns winner.id
         return state.get_winner().id
     
-    def back_propagate(self, node, turn, outcome): # turn is WRONG! NEEDS TO BE FIXED
+    def back_propagate(self, node, outcome): # turn is WRONG! NEEDS TO BE FIXED
         if outcome == self.id: # if mcts won
             reward = 1
         else:
@@ -101,12 +103,10 @@ class MCTS:
         while time.process_time() - t_start < time_limit:
             node, state = self.select_node()
             outcome = self.roll_out(state)
-            self.back_propagate(node, state.actor, outcome) # state.actor is WRONG! could have been causing the issues
+            self.back_propagate(node, outcome)
             n_rollouts += 1
-
-        run_time = time.process_time() - t_start
-        self.run_time = run_time
-        self.num_rollouts = n_rollouts
+        global mcts_num_sims
+        mcts_num_sims.append(n_rollouts)
 
     def best_move(self):
         if self.root_state.is_winner():
