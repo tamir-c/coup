@@ -1,6 +1,12 @@
 import random
+from abc import ABC, abstractmethod
 
-class RandomAgent(object):
+class BaseAgent(ABC):
+    @abstractmethod
+    def choice(self, state):
+        pass
+
+class RandomAgent(BaseAgent):
     def __init__(self, id):
         self.id = id
         self.name = "Random Agent"
@@ -19,7 +25,7 @@ class RandomAgent(object):
             return random.choice(state.get_counteraction_challenges(p))
 
 class RandomNoBluffAgent(object):
-    def __init__(self):
+    def __init__(self, id):
         self.id = id
         self.name = "Random No Bluff Agent"
 
@@ -90,43 +96,71 @@ class RandomBluffBias(object):
             return random.choice(bluffs)
         return random.choice(lst)
     
-class RandomNoChallengeAgent(object):
-    def __init__(self):
-        self.id = id
-        self.name = "Random No Challenge Agent"
+# class RandomNoChallengeAgent(object):
+#     def __init__(self, id):
+#         self.id = id
+#         self.name = "Random No Challenge Agent"
 
-    def choice(self, list, state=None): # state should always be provided to this agent
-        length = len(list)
-        if length == 0:
-            return None
-        if state.stage == 1 or state.stage == 3:
-            return None
-        return random.choice(list)
+#     def choice(self, list, state=None): # state should always be provided to this agent
+#         length = len(list)
+#         if length == 0:
+#             return None
+#         if state.stage == 1 or state.stage == 3:
+#             return None
+#         return random.choice(list)
 
 class RandomNoBluffNoChallengeAgent(object):
-    def __init__(self):
+    def __init__(self, id):
         self.id = id
         self.name = "Random No Bluff No Challenge Agent"
 
-    def choice(self, list, state=None): # state should always be provided to this agent
-        length = len(list)
-        if length == 0:
+    def choice(self, state):
+        p = state.players[self.id]
+        lst = []
+        if state.stage == 0:
+            if state.actor != self.id:
+                raise Exception("Error: it is not this agent's turn to choose an action!")
+            lst = state.get_actions()
+        elif state.stage == 1:
             return None
-        
-        if state.stage == 1 or state.stage == 3:
+        elif state.stage == 2:
+            lst = state.get_counteractions(p)
+        elif state.stage == 3:
             return None
-        
-        for i, item in enumerate(list):
+    
+        if len(lst) == 1:
+            return lst[0]
+        for i, item in enumerate(lst):
             if state.stage == 0: # if choosing an action
                 if item.action_character != "General Action":
                     if not (item.action_character in item.player.get_active_action_characters()):
-                        list.pop(i)
+                        lst.pop(i)
             elif state.stage == 2: # if choosing a counteraction
                 if item != None:
                     if not (item.claim in item.counteractor.get_active_action_characters()):
-                        list.pop(i)
+                        lst.pop(i)
+        return random.choice(lst)
 
-        return random.choice(list)
+class IncomeAgent(BaseAgent):
+    def __init__(self, id):
+        self.id = id
+        self.name = "Income Agent"
+
+    def choice(self, state):
+        if state.stage == 0:
+            if state.actor != self.id:
+                raise Exception("Error: it is not this agent's turn to choose an action!")
+            actions = state.get_actions()
+            a = actions[0]
+            if a.name == "Coup":
+                return random.choice(actions)
+            return a
+        elif state.stage == 1:
+            return None
+        elif state.stage == 2:
+            return None
+        elif state.stage == 3:
+            return None
 
 class HumanAgent(object):
     def __init__(self, id):
@@ -162,9 +196,7 @@ class HumanAgent(object):
         for i in range(length):
             print(str(i) + ": " + lst[i].__repr__())
         while True:
-            c = input()
+            c = input(f"Please enter a number in the range 0 to {length-1}: ")
             if c.isdigit():
                 if int(c) in range(length):
                     return lst[int(c)]
-            print(f"Please enter a number in the range 0 to {length-1}.")
-                    
