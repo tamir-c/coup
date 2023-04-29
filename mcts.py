@@ -24,14 +24,14 @@ class Node:
         for c in children:
             self.children.append(c)
 
-    def value(self, explore = np.sqrt(2)):
+    def uct(self, c = np.sqrt(2)):
         if self.num_sims == 0:
-            if explore == 0:
+            if c == 0:
                 return 0
             else:
                 return float('inf')
         else:
-            return (self.num_wins / self.num_sims) + explore * np.sqrt(np.log(self.parent.num_sims) / self.num_sims)
+            return (self.num_wins / self.num_sims) + c * np.sqrt(np.log(self.parent.num_sims) / self.num_sims)
         
 class MCTS:
     def __init__(self, state, id = 0):
@@ -43,11 +43,11 @@ class MCTS:
     def select_node(self):
         state = deepcopy(self.root_state)
         children = self.root.children
-        max_val = children[0].value()
+        max_val = children[0].uct()
         for c in children:
-            if c.value() > max_val:
-                max_val = c.value()
-        max_nodes = [c for c in children if c.value() == max_val]
+            if c.uct() > max_val:
+                max_val = c.uct()
+        max_nodes = [c for c in children if c.uct() == max_val]
         node = random.choice(max_nodes)
         action = state.get_all_actions(self.id)[node.index]
         state.random_transition(action)
@@ -86,8 +86,7 @@ class MCTS:
         t_start = time.process_time()
         self.expand(self.root, self.root_state)
         n_rollouts = 0
-        # while time.process_time() - t_start < time_limit:
-        while n_rollouts < 50:
+        while time.process_time() - t_start < time_limit:
             node, state = self.select_node()
             outcome = self.roll_out(state)
             self.back_propagate(node, outcome)
@@ -109,7 +108,7 @@ class MCTS:
     
     def best_move_index(self): # returns index of the best action rather than the action itself
         if self.root_state.is_winner():
-            return -1
+            raise Exception("Searching for a terminal state!")
         
         max_value = self.root.children[0].num_sims
         for c in self.root.children:

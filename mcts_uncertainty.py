@@ -1,7 +1,7 @@
 from copy import deepcopy
 from mcts import *
 from state import *
-from statistics import mode
+from statistics import multimode
 import sys, os
         
 class MCTSUncertainty:
@@ -37,7 +37,7 @@ class MCTSUncertainty:
                     mcts = MCTS(state, self.id)
                     mcts.search()
                     best_actions.append(mcts.best_move_index())
-        index = mode(best_actions)
+        index = random.choice(multimode(best_actions))
         return self.original_state.get_all_actions(self.id)[index]
 
         # call MCTS search and get best action

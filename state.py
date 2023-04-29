@@ -123,7 +123,7 @@ class State(object):
         else:
             return None
 
-    def transition(self, a1, a2, a3):
+    def transition_manual(self, a1, a2, a3):
         if self.is_winner():
             return
         # r = list(range(self.num_players))
@@ -372,11 +372,11 @@ class State(object):
                     if a3:
                         self.counteraction_challenge = a3
                         break
-            return self.transition(self.action, a2, a3)
+            return self.transition_manual(self.action, a2, a3)
         elif self.stage == 1: # choosing whether to challenge or not
             if action:
                 self.challenge = action
-            return self.transition(self.action, self.challenge, None)
+            return self.transition_manual(self.action, self.challenge, None)
         elif self.stage == 2: # choosing whether to counteract or not. We assume we might choose to challenge counteraction if made independently or counteracting
             if action:
                 self.counteraction = action
@@ -385,11 +385,11 @@ class State(object):
                 if a3:
                     self.counteraction_challenge = a3
                     break
-            return self.transition(self.action, self.counteraction, a3)
+            return self.transition_manual(self.action, self.counteraction, a3)
         elif self.stage == 3: # chosing whether to challenge counteraction or not
             if action:
                 self.counteraction_challenge = action
-            return self.transition(self.action, self.counteraction, self.counteraction_challenge)
+            return self.transition_manual(self.action, self.counteraction, self.counteraction_challenge)
     
     # prints a table of the current game state that would be observable to every player
     def print_obs(self): 
