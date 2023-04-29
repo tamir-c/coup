@@ -6,7 +6,7 @@ from agent import *
 
 la_num_sims = []
 
-class Combo:
+class NodeState:
     def __init__(self, state, actions):
         self.state = state
         self.actions = actions
@@ -54,11 +54,11 @@ class LookAhead:
         t_start = time.process_time()
         state = deepcopy(self.root_state)
         actions = self.get_actions(state)
-        master = Combo(state, actions)
+        master = NodeState(state, actions)
         while time.process_time() - t_start < time_limit:
-            combo = deepcopy(master)
-            state = combo.state
-            action = combo.actions[i]
+            ns = deepcopy(master)
+            state = ns.state
+            action = ns.actions[i]
             child = self.root.children[i]
             state.random_transition(action)
             reward = self.get_reward(state)

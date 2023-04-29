@@ -207,8 +207,6 @@ class State(object):
             self.stage = 0
             self.action = self.players[turn].agent.choice(state=self)
 
-            print(self.action)
-            print(self.is_winner())
             print("Action taken: " + self.players[turn].name + " plays '" + self.action.__repr__() + "' claiming " + self.action.action_character)
             if human: press_to_continue()
             self.stage = 1

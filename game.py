@@ -278,6 +278,7 @@ def challenge_counteraction(counteraction, challenger):
     return challenger, counteraction.counteractor
 
 # Functions to block and enable calls to print (used to speed up testing agents)
+# REFERENCE BLOCK PRINT
 def blockPrint():
     sys.stdout = open(os.devnull, 'w')
 def enablePrint():

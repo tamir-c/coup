@@ -92,7 +92,7 @@ class MCTS:
             self.back_propagate(node, outcome)
             n_rollouts += 1
         global mcts_num_sims
-        mcts_num_sims.append(n_rollouts)
+        # mcts_num_sims.append(n_rollouts)
 
     def best_move(self):
         if self.root_state.is_winner():
