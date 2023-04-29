@@ -117,15 +117,20 @@ class LookAheadAgent():
         self.id = id
         self.name = "One Step Look Ahead Agent"
     def choice(self, state):
+        printing = isPrinting()
         blockPrint()
         if not state.players[self.id].check_player_in():
             return None
         look_ahead = LookAhead(state, self.id)
         look_ahead.search()
-        enablePrint()
+        if printing: enablePrint()
         return look_ahead.best_move()
 
 def blockPrint():
     sys.stdout = open(os.devnull, 'w')
 def enablePrint():
     sys.stdout = sys.__stdout__
+def isPrinting():
+    if sys.stdout == sys.__stdout__:
+        return True
+    return False

@@ -50,15 +50,20 @@ class MCTSUncertaintyAgent(BaseAgent):
         self.name = "MCTS Unceratinty Agent"
 
     def choice(self, state, msg=""):
+        printing = isPrinting()
         blockPrint()
         if not state.players[self.id].check_player_in():
             return None
         mcts = MCTSUncertainty(state, self.id)
         ret = mcts.search()
-        enablePrint()
+        if printing: enablePrint()
         return ret
     
 def blockPrint():
     sys.stdout = open(os.devnull, 'w')
 def enablePrint():
     sys.stdout = sys.__stdout__
+def isPrinting():
+    if sys.stdout == sys.__stdout__:
+        return True
+    return False
