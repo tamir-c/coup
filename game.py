@@ -286,6 +286,6 @@ def enablePrint():
 def press_to_continue():
     cont = False
     while not cont:
-        inp = input("Press ENTER to continute: ")
+        inp = input("Press ENTER to continue: ")
         if inp == "":
             return
