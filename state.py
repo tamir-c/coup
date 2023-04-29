@@ -180,7 +180,7 @@ class State(object):
             self.increment_turn()
 
     # OLD transition function kept for reference
-    def transition_old(self, is_print=False):
+    def transition(self, is_print=False):
 
         if self.is_winner():
             return
@@ -405,9 +405,6 @@ class State(object):
                 inf_2 = f"{player.cards[1]}"
             table.append([player.name, player.coins, inf_1, inf_1_active, inf_2, inf_2_active, still_in])
         print(tabulate(table, headers="firstrow", tablefmt="pretty"))
-                
-
-
 
 # def load_game_state(string):
 #     p = string.split("-")

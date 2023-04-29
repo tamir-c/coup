@@ -95,7 +95,7 @@ def main():
         print(f"Game {i+1}!\n")
         state = states[i]
         while not state.is_winner():
-            state.transition_old()
+            state.transition()
         results[i] = state.get_winner().id
     enablePrint()
     t_stop = time.perf_counter()

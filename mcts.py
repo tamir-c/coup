@@ -69,7 +69,7 @@ class MCTS:
         for i, p in enumerate(state.players):
             p.agent = RandomAgent(i)
         while not state.is_winner():
-            state.transition_old() # plays game out until the end and returns winner.id
+            state.transition() # plays game out until the end and returns winner.id
         return state.get_winner().id
     
     def back_propagate(self, node, outcome): # turn is WRONG! NEEDS TO BE FIXED
