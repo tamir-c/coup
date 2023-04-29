@@ -2,6 +2,7 @@ from state import *
 from game import *
 from agent import *
 from mcts import *
+from mcts_uncertainty import *
 from look_ahead import *
 import time
 import numpy as np
@@ -18,12 +19,12 @@ import numpy as np
 
 def main():
     num_players = 3
-    iterations = 100
+    iterations = 10
     results = [0 for i in range(num_players)]
     blockPrint()
     t_start = time.perf_counter()
     for i in range(iterations):
-        state = State(num_players=num_players, agents={0:"income", 1:"income", 2:"income"})
+        state = State(num_players=num_players, agents={0:"mcts_uncertainty", 1:"random", 2:"random"})
         while not state.is_winner():
             state.transition_old()
         results[state.get_winner().id] += 1

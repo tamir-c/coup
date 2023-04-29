@@ -304,6 +304,17 @@ class State(object):
             s0 = "showing" if p.cards[0].showing else "not showing"
             s1 = "showing" if p.cards[1].showing else "not showing"
             print(f"{p.name} has {p.cards[0]} - {s0} and {p.cards[1]} - {s1}")
+
+    def get_all_actions(self, id):
+        if self.stage == 0:
+            actions = self.get_actions()
+        elif self.stage == 1:
+            actions = self.get_action_challenges(self.players[id])
+        elif self.stage == 2:
+            actions = self.get_counteractions(self.players[id])
+        elif self.stage == 3:
+            actions = self.get_counteraction_challenges(self.players[id])
+        return actions
     
     # def random_sim(self):
     #     r = list(range(self.num_players))
