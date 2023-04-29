@@ -55,6 +55,7 @@ class MCTSUncertaintyAgent(BaseAgent):
             return None
         mcts = MCTSUncertainty(state, self.id)
         ret = mcts.search()
+        enablePrint()
         return ret
     
 def blockPrint():

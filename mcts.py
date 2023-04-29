@@ -5,6 +5,7 @@ from game import *
 import time
 from state import *
 from agent import *
+import sys, os
 
 # Significant portions of code found from
 # https://www.harrycodes.com/blog/monte-carlo-tree-search
@@ -124,8 +125,15 @@ class MCTSAgent(BaseAgent):
         self.name = "MCTS Agent"
 
     def choice(self, state, msg=""):
+        blockPrint()
         if not state.players[self.id].check_player_in():
             return None
         mcts = MCTS(state, self.id)
         mcts.search()
+        enablePrint()
         return mcts.best_move()
+    
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+def enablePrint():
+    sys.stdout = sys.__stdout__

@@ -3,6 +3,7 @@ from copy import deepcopy
 from game import *
 import time
 from agent import *
+import sys, os
 
 la_num_sims = []
 
@@ -116,9 +117,15 @@ class LookAheadAgent():
         self.id = id
         self.name = "One Step Look Ahead Agent"
     def choice(self, state):
+        blockPrint()
         if not state.players[self.id].check_player_in():
             return None
         look_ahead = LookAhead(state, self.id)
         look_ahead.search()
+        enablePrint()
         return look_ahead.best_move()
-    
+
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+def enablePrint():
+    sys.stdout = sys.__stdout__
