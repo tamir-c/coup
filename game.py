@@ -1,8 +1,6 @@
 import random
-from agent import *
-from mcts import *
-from look_ahead import *
 import sys, os
+from agent_config import *
 
 class Card(object):
         def __init__(self, type):
@@ -82,6 +80,15 @@ class Player(object):
     def get_active_action_characters(self):
         active_cards = self.get_active_cards()
         return [c.name for c in active_cards]
+    
+    # deals cards of the same type to a player - used in mcts_uncertainty
+    def redeal_opponents(self, type):
+        s0 = self.cards[0].showing
+        s1 = self.cards[1].showing
+        self.cards[0] = Card(type)
+        self.cards[0].showing = s0
+        self.cards[1] = Card(type)
+        self.cards[1].showing = s1
 
     # Removes one of the player's influences
     def lose_influence(self):
@@ -269,26 +276,6 @@ def challenge_counteraction(counteraction, challenger):
     if counteraction.claim in names:
         return counteraction.counteractor, challenger
     return challenger, counteraction.counteractor
-
-def generate_agent(id, agent):
-     # COMPLETE FOR ALL AGENTS
-    if agent == None or agent == "random":
-        return RandomAgent(id)
-    if agent == None or agent == "random_no_bluff":
-        return RandomNoBluffAgent(id)
-    if agent == "human":
-        return HumanAgent(id)
-    if agent == "random_bluff_bias":
-        return RandomBluffBias(id)
-    if agent == "mcts":
-        return MCTSAgent(id)
-    if agent == "look_ahead":
-        return LookAheadAgent(id)
-    if agent == "income":
-        return IncomeAgent(id)
-    if agent == "random_no_bluff_no_challenge":
-        return RandomNoBluffNoChallengeAgent(id)
-    return RandomAgent(id)
 
 # Functions to block and enable calls to print (used to speed up testing agents)
 def blockPrint():

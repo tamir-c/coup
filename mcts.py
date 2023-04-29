@@ -38,20 +38,17 @@ class MCTS:
         self.root_state = deepcopy(state)
         self.original_state = state
         self.root = Node(None, 0)
-        self.run_time = 0
-        self.node_count = 0
-        self.num_rollouts = 0
 
     def select_node(self):
         state = deepcopy(self.root_state)
         children = self.root.children
-        max_value = children[0].value()
+        max_val = children[0].value()
         for c in children:
-            if c.value() > max_value:
-                max_value = c.value()
-        max_nodes = [c for c in children if c.value() == max_value]
+            if c.value() > max_val:
+                max_val = c.value()
+        max_nodes = [c for c in children if c.value() == max_val]
         node = random.choice(max_nodes)
-        action = self.get_actions(state)[node.index]
+        action = state.get_all_actions(self.id)[node.index]
         state.random_transition(action)
         if node.num_sims == 0:
             return node, state
@@ -62,21 +59,10 @@ class MCTS:
             return False
         if parent != self.root:
             return False
-        actions = self.get_actions(state)
+        actions = state.get_all_actions(self.id)
         children = [Node(parent, i) for i in range(len(actions))]
         parent.add_children(children)
         return True
-    
-    def get_actions(self, state):
-        if state.stage == 0:
-            actions = state.get_actions()
-        elif state.stage == 1:
-            actions = state.get_action_challenges(state.players[self.id])
-        elif state.stage == 2:
-            actions = state.get_counteractions(state.players[self.id])
-        elif state.stage == 3:
-            actions = state.get_counteraction_challenges(state.players[self.id])
-        return actions
     
     def roll_out(self, state):
         for i, p in enumerate(state.players):
@@ -94,13 +80,13 @@ class MCTS:
             node.num_sims += 1
             node.num_wins += reward
             node = node.parent
-  
 
     def search(self, time_limit = 0.05):
         t_start = time.process_time()
         self.expand(self.root, self.root_state)
         n_rollouts = 0
-        while time.process_time() - t_start < time_limit:
+        # while time.process_time() - t_start < time_limit:
+        while n_rollouts < 50:
             node, state = self.select_node()
             outcome = self.roll_out(state)
             self.back_propagate(node, outcome)
@@ -112,15 +98,27 @@ class MCTS:
         if self.root_state.is_winner():
             return -1
         
+        max_val = self.root.children[0].num_sims
+        for c in self.root.children:
+            if c.num_sims > max_val:
+                max_val = c.num_sims
+        max_nodes = [c for c in self.root.children if c.num_sims == max_val]
+        best_child = self.original_state.get_all_actions(self.id)[random.choice(max_nodes).index]
+        return best_child
+    
+    def best_move_index(self): # returns index of the best action rather than the action itself
+        if self.root_state.is_winner():
+            return -1
+        
         max_value = self.root.children[0].num_sims
         for c in self.root.children:
             if c.num_sims > max_value:
                 max_value = c.num_sims
         max_nodes = [c for c in self.root.children if c.num_sims == max_value]
-        best_child = self.get_actions(self.original_state)[random.choice(max_nodes).index]
-        return best_child
+        return random.choice(max_nodes).index
+        
 
-class MCTSAgent(object):
+class MCTSAgent(BaseAgent):
     def __init__(self, id):
         self.id = id
         self.name = "MCTS Agent"
