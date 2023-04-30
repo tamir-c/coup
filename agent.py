@@ -194,9 +194,9 @@ class HumanAgent(object):
 
         print(prt)
         for i in range(length):
-            print(str(i) + ": " + lst[i].__repr__())
+            print(str(i+1) + ": " + lst[i].__repr__())
         while True:
-            c = input(f"Please enter a number in the range 0 to {length-1}: ")
+            c = input(f"Please enter a number in the range 1 to {length}: ")
             if c.isdigit():
-                if int(c) in range(length):
-                    return lst[int(c)]
+                if int(c) in range(1,length+1):
+                    return lst[int(c)-1]

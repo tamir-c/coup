@@ -178,7 +178,7 @@ class State(object):
             self.increment_turn()
 
     # OLD transition function kept for reference
-    def transition(self, is_print=False):
+    def transition(self, is_print=False, battle=False):
 
         if self.is_winner():
             return
@@ -194,7 +194,7 @@ class State(object):
         turn = self.actor
         if self.players[turn].check_player_in():
            
-            self.print_obs()
+            self.print_obs(battle=battle)
             if human: press_to_continue()
             print("\n" + self.players[turn].__repr__() + "'s turn!")
              # for debugging
@@ -390,12 +390,14 @@ class State(object):
             return self.transition_manual(self.action, self.counteraction, self.counteraction_challenge)
     
     # prints a table of the current game state that would be observable to every player
-    def print_obs(self): 
+    def print_obs(self, battle=False): 
         table = [['Player Name','Coins','Inf 1', 'Inf 1 Active?', 'Inf 2', 'Inf 2 Active?', 'Player Still In?']]
         for player in self.players:
             inf_1 = f"{player.cards[0] if player.cards[0].showing else 'Not Showing'}"
+            if battle: inf_1 = f"{player.cards[0]}"
             inf_1_active = f"{not player.cards[0].showing}"
             inf_2 = f"{player.cards[1] if player.cards[1].showing else 'Not Showing'}"
+            if battle: inf_2 = f"{player.cards[1]}"
             inf_2_active = f"{not player.cards[1].showing}"
             still_in = f"{player.check_player_in()}"
             if player.agent.name == "Human Agent":

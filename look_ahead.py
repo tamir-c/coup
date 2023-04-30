@@ -123,7 +123,7 @@ class LookAheadAgent():
             return None
         look_ahead = LookAhead(state, self.id)
         look_ahead.search()
-        if printing: enablePrint()
+        enablePrint()
         return look_ahead.best_move()
 
 def blockPrint():

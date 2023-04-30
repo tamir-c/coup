@@ -130,7 +130,7 @@ class MCTSAgent(BaseAgent):
             return None
         mcts = MCTS(state, self.id)
         mcts.search()
-        if printing: enablePrint()
+        enablePrint()
         return mcts.best_move()
     
 def blockPrint():

@@ -277,6 +277,22 @@ def challenge_counteraction(counteraction, challenger):
         return counteraction.counteractor, challenger
     return challenger, counteraction.counteractor
 
+# returns index of chosen element in list i.e. elements listed number - 1
+def choose_from_list(lst):
+    length = len(lst)
+    if length == 0:
+        return None
+    if length == 1:
+        return 0
+
+    for i in range(length):
+        print(f"{i+1}: {lst[i]}")
+    while True:
+        c = input(f"Please enter a number in the range 1 to {length}: ")
+        if c.isdigit():
+            if int(c) in range(1, length+1):
+                return int(c)-1
+
 # Functions to block and enable calls to print (used to speed up testing agents)
 # REFERENCE BLOCK PRINT
 def blockPrint():
