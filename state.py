@@ -193,15 +193,11 @@ class State(object):
 
         turn = self.actor
         if self.players[turn].check_player_in():
-           
+
+            print("\n" + self.players[turn].__repr__() + "'s turn!")
             self.print_obs(battle=battle)
             if human: press_to_continue()
-            print("\n" + self.players[turn].__repr__() + "'s turn!")
-             # for debugging
-            # for player in self.players:
-            #     # print(player.name, player.coins, player.num_influences(), player.cards, player.cards[0].showing, player.cards[1].showing)
-            #     print(f"{player.name} {player.coins} {player.cards[0] if player.cards[0].showing else 'Not Showing'} {player.cards[1] if player.cards[1].showing else 'Not Showing'}")
-                
+            
             self.stage = 0
             self.action = self.players[turn].agent.choice(state=self)
 
@@ -213,8 +209,7 @@ class State(object):
                 if self.challenge: # if a player has challenged, break - only one player can challenge an action in a play
                     break
 
-            print("Challenge taken:")
-            print(self.challenge)
+            print(f"Challenge taken: {self.challenge}")
             if human: press_to_continue()
             if self.challenge: # if a challenge has occured:
                 winner, loser = challenge_action(self.challenge.action, self.challenge.challenger) # handle challenge
@@ -244,8 +239,7 @@ class State(object):
                     if self.counteraction:
                         break
 
-                print("Counteraction taken: ")
-                print(self.counteraction)
+                print(f"Counteraction taken: {self.counteraction}")
                 if human: press_to_continue()
                 if not self.counteraction: # the action went unchallenged and no one counteracted so the action succeeds 
                     self.action.execute(success=True)
@@ -257,8 +251,7 @@ class State(object):
                         if self.counteraction_challenge:
                             break
 
-                    print("Challenge to counteraction taken:")
-                    print(self.counteraction_challenge)
+                    print(f"Challenge to counteraction taken: {self.counteraction_challenge}")
                     if human: press_to_continue()
                     if self.counteraction_challenge:
                         winner, loser = challenge_counteraction(self.counteraction_challenge.counteraction, self.counteraction_challenge.challenger) # handle challenge: if counteractor wins challenger loses influence 

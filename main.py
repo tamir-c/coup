@@ -74,6 +74,7 @@ def main():
         state.transition(battle=battle)
     winner = state.get_winner().id
 
+    print("------------------------------------------------------------")
     print(f"Player {winner} wins the game!")
 
     
