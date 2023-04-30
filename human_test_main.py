@@ -63,12 +63,8 @@ def main():
     if sent != {}:
         raise Exception("Test email could not be sent so results will not get through. Please contact sc20tc@leeds.ac.uk for advice.")
 
-    human = False
-    if not human: blockPrint()
-
     num_players = 2
     iterations = 3
-    # results = [0 for i in range(num_players)]
     results = [-1,-1,-1]
     states = [State(num_players=num_players, agents={0:"human", 1:"random"}),
             State(num_players=num_players, agents={0:"human",1:"mcts"}),
@@ -82,7 +78,7 @@ def main():
         while not state.is_winner():
             state.transition()
         results[i] = state.get_winner().id
-    enablePrint()
+
     t_stop = time.perf_counter()
     t_elapsed = t_stop-t_start
     s1 = f"Name: {name}."
@@ -99,12 +95,12 @@ def main():
     print("Thank you very much for your time! I hope you enjoyed playing.\n\n")
     print("You may now close the application.")
 
-    # for i in range(num_players):
-    #     print((results[i]*100)/iterations)
+
 
 if __name__ == "__main__":
     main()
 
-
+    # for i in range(num_players):
+    #     print((results[i]*100)/iterations)
 # print(f"Num sims per search: {np.mean(mcts_num_sims)}")
 # print(f"Num searches per game : {len(mcts_num_sims)/iterations}")

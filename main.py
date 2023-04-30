@@ -4,7 +4,6 @@ from agent import *
 from mcts import *
 from mcts_uncertainty import *
 from look_ahead import *
-import time
 
 def main():
     battle = False

@@ -191,6 +191,8 @@ class State(object):
         if self.is_winner():
             return
         
+        # If a human is playing, they are index 0, and the order of asking for responses to actions is not shuffled,
+        # such that the human will always be the first to respond, giving them a slight advantage
         human = False
         for p in self.players: 
             if p.agent.name == "Human Agent":
@@ -202,14 +204,14 @@ class State(object):
         turn = self.actor
         if self.players[turn].check_player_in():
 
-            if is_print: print("\n" + self.players[turn].__repr__() + "'s turn!")
+            if is_print: print(f"\n{self.players[turn].__repr__()}'s turn!")
             if is_print: self.print_obs(battle=battle)
             if human: press_to_continue()
             
             self.stage = 0
             self.action = self.players[turn].agent.choice(state=self)
 
-            if is_print: print("Action taken: " + self.players[turn].name + " plays '" + self.action.__repr__() + "' claiming " + self.action.action_character)
+            if is_print: print(f"Action taken: {self.players[turn].name} plays {self.action.__repr__()} claiming {self.action.action_character}.")
             if human: press_to_continue()
             self.stage = 1
             for i in r:
@@ -226,7 +228,7 @@ class State(object):
                     card_index = 0
                     if winner.cards[1].name == self.action.action_character and winner.cards[1].showing == False:
                         card_index = 1
-                    if is_print: print(winner.name + " wins the challenge with " + winner.cards[card_index].name)
+                    if is_print: print(f"{winner.name} wins the challenge with {winner.cards[card_index].name}.")
                     if human: press_to_continue()
                     self.action.execute(success=True, is_print=is_print)
                     if human: press_to_continue()
@@ -235,8 +237,8 @@ class State(object):
                     self.deck.deal(winner)
                     loser.lose_influence(is_print=is_print)
                     if human: press_to_continue()
-                else: # the winner is the one who challenged the action. The action fails so the actor loses an influence and play continues
-                    if is_print: print(winner.name + " wins the challenge because " + loser.name + " does not have " + self.action.action_character)
+                else: # The winner is the one who challenged the action. The action fails so the actor loses an influence and play continues
+                    if is_print: print(f"{winner.name} wins the challenge because {loser.name} does not have {self.action.action_character}.")
                     if human: press_to_continue()
                     loser.lose_influence(is_print=is_print)
                     if human: press_to_continue()
@@ -263,9 +265,9 @@ class State(object):
                     if human: press_to_continue()
                     if self.counteraction_challenge:
                         winner, loser = challenge_counteraction(self.counteraction_challenge.counteraction, self.counteraction_challenge.challenger) # handle challenge: if counteractor wins challenger loses influence 
-                        #if winner is counteractor
+                        # If the winner is the counteractor
                         if winner == self.counteraction_challenge.counteraction.counteractor:
-                            if is_print: print(winner.__repr__() + " wins with " + self.counteraction_challenge.counteraction.claim + "!")
+                            if is_print: print(f"{winner.__repr__()} wins with {self.counteraction_challenge.counteraction.claim}!")
                             if human: press_to_continue()
                             card_index = 0
                             if winner.cards[1].name == self.counteraction_challenge.counteraction.claim and winner.cards[1].showing == False:
@@ -276,8 +278,8 @@ class State(object):
                             self.action.execute(success=False, is_print=is_print)
                             self.counteraction_challenge.challenger.lose_influence(is_print=is_print)
                             if human: press_to_continue()
-                        else: # if the winner is the challenger
-                            if is_print: print(winner.__repr__() + " wins because " + loser.__repr__() + " does not have " + self.counteraction_challenge.counteraction.claim + "!")
+                        else: # If the winner is the challenger
+                            if is_print: print(f"{winner.__repr__()} wins because {loser.__repr__()} does not have {self.counteraction_challenge.counteraction.claim}!")
                             if human: press_to_continue()
                             self.action.execute(success=True, is_print=is_print)
                             self.counteraction_challenge.counteraction.counteractor.lose_influence(is_print=is_print)
