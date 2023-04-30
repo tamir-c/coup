@@ -178,7 +178,6 @@ class State(object):
             self.increment_turn()
 
     def transition(self, is_print=True, battle=False):
-        prt = is_print
         if self.is_winner():
             return
         
@@ -219,17 +218,17 @@ class State(object):
                         card_index = 1
                     if is_print: print(winner.name + " wins the challenge with " + winner.cards[card_index].name)
                     if human: press_to_continue()
-                    self.action.execute(success=True, is_print=prt)
+                    self.action.execute(success=True, is_print=is_print)
                     if human: press_to_continue()
                     self.deck.append(winner.cards.pop(card_index))
                     self.deck.shuffle()
                     self.deck.deal(winner)
-                    loser.lose_influence(is_print=prt)
+                    loser.lose_influence(is_print=is_print)
                     if human: press_to_continue()
                 else: # the winner is the one who challenged the action. The action fails so the actor loses an influence and play continues
                     if is_print: print(winner.name + " wins the challenge because " + loser.name + " does not have " + self.action.action_character)
                     if human: press_to_continue()
-                    loser.lose_influence(is_print=prt)
+                    loser.lose_influence(is_print=is_print)
                     if human: press_to_continue()
             else: # there were no challenges so game moves to counteractions
                 self.stage = 2
@@ -241,7 +240,7 @@ class State(object):
                 if is_print: print(f"Counteraction taken: {self.counteraction}")
                 if human: press_to_continue()
                 if not self.counteraction: # the action went unchallenged and no one counteracted so the action succeeds 
-                    self.action.execute(success=True, is_print=prt)
+                    self.action.execute(success=True, is_print=is_print)
                     if human: press_to_continue()
                 else: # players can choose to challenge the counteraction
                     self.stage = 3
@@ -264,18 +263,18 @@ class State(object):
                             self.deck.append(winner.cards.pop(card_index))
                             self.deck.shuffle()
                             self.deck.deal(winner)
-                            self.action.execute(success=False, is_print=prt)
-                            self.counteraction_challenge.challenger.lose_influence(is_print=prt)
+                            self.action.execute(success=False, is_print=is_print)
+                            self.counteraction_challenge.challenger.lose_influence(is_print=is_print)
                             if human: press_to_continue()
                         else: # if the winner is the challenger
                             if is_print: print(winner.__repr__() + " wins because " + loser.__repr__() + " does not have " + self.counteraction_challenge.counteraction.claim + "!")
                             if human: press_to_continue()
-                            self.action.execute(success=True, is_print=prt)
-                            self.counteraction_challenge.counteraction.counteractor.lose_influence(is_print=prt)
+                            self.action.execute(success=True, is_print=is_print)
+                            self.counteraction_challenge.counteraction.counteractor.lose_influence(is_print=is_print)
                             if human: press_to_continue()
 
                     else: # If no one challenges the counteraction, the counteraction succeeds so the action fails
-                        self.action.execute(success=False, is_print=prt)
+                        self.action.execute(success=False, is_print=is_print)
                         if human: press_to_continue()
 
         self.stage = 0

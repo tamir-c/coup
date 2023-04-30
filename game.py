@@ -178,21 +178,20 @@ class Action(object):
         return self.name
 
     def execute(self, success, is_print=True):
-        prt = is_print
         if self.name == "Income":
-            income(self.player, success, is_print=prt)
+            income(self.player, success, is_print=is_print)
         elif self.name == "Foreign Aid":
-            foreign_aid(self.player, success, is_print=prt)
+            foreign_aid(self.player, success, is_print=is_print)
         elif self.name == "Coup":
-            coup(self.player, self.target, success, is_print=prt)
+            coup(self.player, self.target, success, is_print=is_print)
         elif self.name == "Tax":
-            tax(self.player, success, is_print=prt)
+            tax(self.player, success, is_print=is_print)
         elif self.name == "Assassinate":
-            assassinate(self.player, self.target, success, is_print=prt)
+            assassinate(self.player, self.target, success, is_print=is_print)
         elif self.name == "Steal":
-            steal(self.player, self.target, success, is_print=prt)
+            steal(self.player, self.target, success, is_print=is_print)
         elif self.name == "Exchange":
-            exchange(self.player, self.deck, success, is_print=prt)
+            exchange(self.player, self.deck, success, is_print=is_print)
 
 def check_coup(player, target):
     if player.check_player_in() == False:
