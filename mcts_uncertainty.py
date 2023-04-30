@@ -53,16 +53,5 @@ class MCTSUncertaintyAgent(BaseAgent):
         if not state.players[self.id].check_player_in():
             return None
         mcts = MCTSUncertainty(state, self.id)
-        blockPrint()
         ret = mcts.search()
-        enablePrint()
         return ret
-    
-def blockPrint():
-    sys.stdout = open(os.devnull, 'w')
-def enablePrint():
-    sys.stdout = sys.__stdout__
-def isPrinting():
-    if sys.stdout == sys.__stdout__:
-        return True
-    return False

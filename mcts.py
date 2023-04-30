@@ -69,7 +69,7 @@ class MCTS:
         for i, p in enumerate(state.players):
             p.agent = RandomAgent(i)
         while not state.is_winner():
-            state.transition() # plays game out until the end and returns winner.id
+            state.transition(is_print=False) # plays game out until the end and returns winner.id
         return state.get_winner().id
     
     def back_propagate(self, node, outcome): # turn is WRONG! NEEDS TO BE FIXED
@@ -91,12 +91,10 @@ class MCTS:
             outcome = self.roll_out(state)
             self.back_propagate(node, outcome)
             n_rollouts += 1
-        global mcts_num_sims
-        # mcts_num_sims.append(n_rollouts)
 
     def best_move(self):
         if self.root_state.is_winner():
-            return -1
+            raise Exception("Searching for terminal state!")
         
         max_val = self.root.children[0].num_sims
         for c in self.root.children:
@@ -124,19 +122,8 @@ class MCTSAgent(BaseAgent):
         self.name = "MCTS Agent"
 
     def choice(self, state, msg=""):
-        blockPrint()
         if not state.players[self.id].check_player_in():
             return None
         mcts = MCTS(state, self.id)
         mcts.search()
-        enablePrint()
         return mcts.best_move()
-    
-def blockPrint():
-    sys.stdout = open(os.devnull, 'w')
-def enablePrint():
-    sys.stdout = sys.__stdout__
-def isPrinting():
-    if sys.stdout == sys.__stdout__:
-        return True
-    return False

@@ -91,7 +91,7 @@ class Player(object):
         self.cards[1].showing = s1
 
     # Removes one of the player's influences
-    def lose_influence(self):
+    def lose_influence(self, is_print=True):
         inf = self.num_influences()
         if inf == 1:
             if self.cards[0].showing:
@@ -100,7 +100,7 @@ class Player(object):
                 self.cards[0].showing = True
         else: # The player loses influence 0 by default if they have two active influences
             self.cards[0].showing = True
-        print(self.name + " loses an influence!")
+        if is_print: print(self.name + " loses an influence!")
 
     def check_player_in(self):
         if self.num_influences() <= 0:
@@ -177,21 +177,22 @@ class Action(object):
             return self.name + " " + self.target.name
         return self.name
 
-    def execute(self, success):
+    def execute(self, success, is_print=True):
+        prt = is_print
         if self.name == "Income":
-            income(self.player, success)
+            income(self.player, success, is_print=prt)
         elif self.name == "Foreign Aid":
-            foreign_aid(self.player, success)
+            foreign_aid(self.player, success, is_print=prt)
         elif self.name == "Coup":
-            coup(self.player, self.target, success)
+            coup(self.player, self.target, success, is_print=prt)
         elif self.name == "Tax":
-            tax(self.player, success)
+            tax(self.player, success, is_print=prt)
         elif self.name == "Assassinate":
-            assassinate(self.player, self.target, success)
+            assassinate(self.player, self.target, success, is_print=prt)
         elif self.name == "Steal":
-            steal(self.player, self.target, success)
+            steal(self.player, self.target, success, is_print=prt)
         elif self.name == "Exchange":
-            exchange(self.player, self.deck, success)
+            exchange(self.player, self.deck, success, is_print=prt)
 
 def check_coup(player, target):
     if player.check_player_in() == False:
@@ -220,40 +221,40 @@ def check_steal(player, target):
         return False
     return True
 
-def income(player, success):
+def income(player, success, is_print=True):
     if success:
-        print(player.name + " gains 1 coin through Income!")
+        if is_print: print(player.name + " gains 1 coin through Income!")
         player.coins += 1
-def foreign_aid(player, success):
+def foreign_aid(player, success, is_print=True):
     if success:
-        print(player.name + " gains 2 coins through Foreign Aid!")
+        if is_print: print(player.name + " gains 2 coins through Foreign Aid!")
         player.coins += 2
-def coup(player, target, success):
+def coup(player, target, success, is_print=True):
     if success:
         player.coins -= 7
-        print(player.name + " spends 7 coins to Coup!")
-        print(player.name + " Coups " + target.name)
-        target.lose_influence() # change this to allow target to choose which card to give up
-def tax(player, success):
+        if is_print: print(player.name + " spends 7 coins to Coup!")
+        if is_print: print(player.name + " Coups " + target.name)
+        target.lose_influence(is_print) # change this to allow target to choose which card to give up
+def tax(player, success, is_print=True):
     if success:
-        print(player.name + " collects 3 coins through tax!")
+        if is_print: print(player.name + " collects 3 coins through tax!")
         player.coins += 3
-def assassinate(player, target, success):
+def assassinate(player, target, success, is_print=True):
     player.coins -= 3
-    print(player.name + " spends 3 coins to assassinate!")
+    if is_print: print(player.name + " spends 3 coins to assassinate!")
     if success:
-        print(player.name + " assassinates " + target.name)
-        target.lose_influence() # change this to allow target to choose which card to give up
-def steal(player, target, success):
+        if is_print: print(player.name + " assassinates " + target.name)
+        target.lose_influence(is_print) # change this to allow target to choose which card to give up
+def steal(player, target, success, is_print=True):
     if success:
         coins_to_take = 2
         if target.coins == 1:
             coins_to_take = 1
-        print(player.name + " steals " + str(coins_to_take) + " coins from " + target.name)
+        if is_print: print(player.name + " steals " + str(coins_to_take) + " coins from " + target.name)
         target.coins -= coins_to_take
         player.coins += coins_to_take
-def exchange(player, deck, success):
-    tax(player, success)
+def exchange(player, deck, success, is_print=True):
+    tax(player, success, is_print=is_print)
 
 # Returns winner, loser
 def challenge_action(action, challenger):
@@ -293,12 +294,6 @@ def choose_from_list(lst):
             if int(c) in range(1, length+1):
                 return int(c)-1
 
-# Functions to block and enable calls to print (used to speed up testing agents)
-# REFERENCE BLOCK PRINT
-def blockPrint():
-    sys.stdout = open(os.devnull, 'w')
-def enablePrint():
-    sys.stdout = sys.__stdout__
 def press_to_continue():
     cont = False
     while not cont:
