@@ -124,7 +124,6 @@ class MCTSAgent(BaseAgent):
         self.name = "MCTS Agent"
 
     def choice(self, state, msg=""):
-
         blockPrint()
         if not state.players[self.id].check_player_in():
             return None

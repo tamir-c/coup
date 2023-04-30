@@ -76,7 +76,6 @@ def main():
 
     print("------------------------------------------------------------")
     print(f"Player {winner} wins the game!")
-
     
 if __name__ == "__main__":
     main()
