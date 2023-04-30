@@ -95,20 +95,21 @@ class LookAhead:
             root_inf[i] = p.num_influences()
         for i, p in enumerate(state.players):
             if p.num_influences() != root_inf[i]:
-                if i == self.id: # the agent has lost the influence
+                if i == self.id: # The agent has lost the influence
                     if p.num_influences() == 1:
                         lose_inf = -50
                     if p.num_influences() == 0:
                         lose_inf = -400
-                else: # an opponent has lost the influence
+                else: # An opponent has lost the influence
                     if p.num_influences() == 1:
                         lose_inf = 30
                     elif p.num_influences() == 0:
                         lose_inf = 50
-            break # a maximum of one player can lose an influences per state transition
+            break # Can safely break because a maximum of one player can lose an influences per state transition
         
         reward += lose_inf
         reward += (state.players[self.id].coins - self.root_state.players[self.id].coins) * 2
+        # Should opponents losing coins be included in reward as well? 
         
         return reward
 

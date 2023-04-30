@@ -1,42 +1,42 @@
 from game import *
 import random
 from tabulate import tabulate
-import numpy as np
 
 class State(object):
     def __init__(self, state_string = "", num_players = 2, agents={}):
         if num_players <= 1 or num_players > 6:
-            num_players = 3
+            raise Exception("Number of players must be between 2 and 6!")
         if state_string == "":    
             self.num_players = num_players
             self.players = []
             self.deck = Deck()
             self.deck.shuffle()
 
-            self.actor = 0 # actor index
+            self.actor = 0 # Index of the current actor in self.players
             self.action = None
             self.challenge = None
-            self.is_challenge = False
             self.counteraction = None
-            self.is_counteraction = False
             self.counteraction_challenge = None
-            self.is_counteraction_challenge = False
             self.stage = 0
 
             for i in range(self.num_players):
-                # if the player's agent is not specified it will default to RandomAgent() (set in Player init)
-                self.players.append(Player(i, self.num_players, agent=agents.get(i))) # player.id will always match player's index in players
+                # If agent type is not specified for a player, None is returned by the get method which is resolved to a random agent by default in generate_agent()
+                self.players.append(Player(i, self.num_players, agent=agents.get(i)))
                 self.deck.deal(self.players[i], times=2)
 
+    # Returns index of the next actor (i.e. next active player) in self.players
     def increment_turn(self):
         found_next = False
         while (not found_next) and (not self.is_winner()):
             self.actor = (self.actor + 1) % self.num_players
             if self.players[self.actor].check_player_in():
                 found_next = True
-
+    
+    # Returns a list of all actions available to the the actor in this state
     def get_actions(self):
         player = self.players[self.actor]
+        if not player.check_player_in():
+            raise Exception("Cannot get actions for a player that is not in!")
         actions = []
         force_coup = False
         if player.coins >= 10:
@@ -104,6 +104,7 @@ class State(object):
                 counteraction_challenges.append(CounteractionChallenge(self.counteraction, challenger))
         return counteraction_challenges
     
+    # Returns True if there exists a winner, False if not
     def is_winner(self):
         in_players = 0
         for player in self.players:
@@ -113,6 +114,7 @@ class State(object):
             return True
         return False
     
+    # Returns the winning player, or None
     def get_winner(self):
         if self.is_winner():
             for player in self.players:
@@ -121,18 +123,21 @@ class State(object):
         else:
             return None
 
+    # Used by agents in searches
+    # Performs a state transition given all three actions a1, a2, a3
+    # As opposed to transition() which obtains the actions from the players' agents
+    # Uses the same game logic as transition()
     def transition_manual(self, a1, a2, a3):
         if self.is_winner():
             return
-        # r = list(range(self.num_players))
-        # random.shuffle(r)
+
         turn = self.actor
         if self.players[turn].check_player_in():
 
-            if (self.challenge): # if a challenge has occured:
-                winner, loser = challenge_action(a2.action, a2.challenger) # handle challenge
-                if winner == a1.player: # if the winner is the one who was challenged
-                    # finds the card index of the actors card that won the challenge
+            if (self.challenge): # If a challenge has occured:
+                winner, loser = challenge_action(a2.action, a2.challenger) # Resolves the challenge
+                if winner == a1.player: # If the winner is the one who was challenged
+                    # Finds the card index of the actors card that won the challenge
                     card_index = 0
                     if winner.cards[1].name == a1.action_character and winner.cards[1].showing == False:
                         card_index = 1
@@ -141,16 +146,16 @@ class State(object):
                     self.deck.shuffle()
                     self.deck.deal(winner)
                     loser.lose_influence(is_print=False)
-                else: # the winner is the one who challenged the action. The action fails so the actor loses an influence and play continues
+                else: # The winner is the one who challenged the action. The action fails so the actor loses an influence and play continues
                     loser.lose_influence(is_print=False)
             
             else: # a2 must be a counteraction
-                if a2 == None: # the action went unchallenged so if no one counteracts the action succeeds 
+                if a2 == None: # The action went unchallenged so if no one counteracts the action succeeds 
                     self.action.execute(success=True, is_print=False)
                 else: # a2 stores the counteraction
                     if self.counteraction_challenge:
                         winner, loser = challenge_counteraction(a3.counteraction, a3.challenger) # handle challenge: if counteractor wins challenger loses influence 
-                        #if winner is counteractor
+                        # If the winner is the counteractor
                         if winner == a3.counteraction.counteractor:
                             card_index = 0
                             if winner.cards[1].name == a3.counteraction.claim and winner.cards[1].showing == False:
@@ -160,7 +165,7 @@ class State(object):
                             self.deck.deal(winner)
                             a1.execute(success=False, is_print=False)
                             a3.challenger.lose_influence(is_print=False)
-                        else: # if the winner is the challenger
+                        else: # If the winner is the challenger
                             a1.execute(success=True, is_print=False)
                             a3.counteraction.counteractor.lose_influence(is_print=False)
 
@@ -177,6 +182,11 @@ class State(object):
         if not self.is_winner():
             self.increment_turn()
 
+    # TODO FINISH COMMENTING STATE
+    # Transitions a state in place by interfacting with the players' agents to get their decisions
+    # Takes is_print as an argument used to control whether the function prints to stdout
+    # If the function always printed stdout would be flooded when search agents use transition() to roll out simulations
+    # battle determines if a human is playing or battling agents against each other (when battling, opponents influences are made visible)
     def transition(self, is_print=True, battle=False):
         if self.is_winner():
             return
@@ -285,13 +295,6 @@ class State(object):
         if not self.is_winner():
             self.increment_turn()
 
-    # print the state for debugging purposes
-    def print(self):
-        for p in self.players:
-            s0 = "showing" if p.cards[0].showing else "not showing"
-            s1 = "showing" if p.cards[1].showing else "not showing"
-            print(f"{p.name} has {p.cards[0]} - {s0} and {p.cards[1]} - {s1}")
-
     def get_all_actions(self, id):
         if self.stage == 0:
             actions = self.get_actions()
@@ -302,38 +305,6 @@ class State(object):
         elif self.stage == 3:
             actions = self.get_counteraction_challenges(self.players[id])
         return actions
-    
-    # def random_sim(self):
-    #     r = list(range(self.num_players))
-    #     random.shuffle(r)
-
-    #     while not self.is_winner():
-    #         a1 = random.choice(self.get_actions())
-    #         self.action = a1
-    #         a2 = None
-    #         a3 = None
-    #         for i in r:
-    #             a2 = random.choice(self.get_action_challenges(self.players[i]))
-    #             if a2:
-    #                 self.is_challenge = True
-    #                 self.challenge = a2
-    #                 break
-    #         if not a2:
-    #             for i in r:
-    #                 a2 = random.choice(self.get_counteractions(self.players[i]))
-    #                 if a2:
-    #                     self.is_counteraction = True
-    #                     self.counteraction = a2
-    #                     break
-    #         if self.is_counteraction:
-    #             for i in r:
-    #                 a3 = random.choice(self.get_counteraction_challenges(self.players[i]))
-    #                 if a3:
-    #                     self.is_counteraction_challenge = True
-    #                     self.counteraction_challenge = a3
-    #                     break
-    #         self.transition(a1, a2, a3)
-    #     return self.get_winner().id
     
     def random_transition(self, action):
         if self.is_winner():
@@ -380,7 +351,7 @@ class State(object):
                 self.counteraction_challenge = action
             return self.transition_manual(self.action, self.counteraction, self.counteraction_challenge)
     
-    # prints a table of the current game state that would be observable to every player
+    # Prints a table of the current game state that would be observable to every player
     def print_obs(self, battle=False): 
         table = [['Player Name','Coins','Inf 1', 'Inf 1 Active?', 'Inf 2', 'Inf 2 Active?', 'Player Still In?']]
         for player in self.players:
@@ -396,26 +367,3 @@ class State(object):
                 inf_2 = f"{player.cards[1]}"
             table.append([player.name, player.coins, inf_1, inf_1_active, inf_2, inf_2_active, still_in])
         print(tabulate(table, headers="firstrow", tablefmt="pretty"))
-
-# def load_game_state(string):
-#     p = string.split("-")
-#     num_players = int(p[0])
-#     players = []
-#     deck = Deck()
-#     for i in range(num_players):
-#         coins = p[1+5*i]
-#         player = Player(i, num_players)
-#         deck.deal_character(player, int(p[2+5*i]))
-#         if p[3+5*i] == 0:
-#             player.cards[0].showing = False
-#         else:
-#             player.cards[0].showing = True
-#         deck.deal_character(player, int(p[4+5*i]))
-#         if p[5+5*i] == 0:
-#             player.cards[0].showing = False
-#         else:
-#             player.cards[0].showing = True
-#         players.append(player)
-    
-#     count = int(p[num_players*5 + 1])
-#     return num_players, players, deck, count

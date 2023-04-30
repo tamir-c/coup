@@ -5,9 +5,8 @@ from game import *
 import time
 from state import *
 from agent import *
-import sys, os
 
-# Significant portions of code found from
+# MCTS taught by and adapted from
 # https://www.harrycodes.com/blog/monte-carlo-tree-search
 
 mcts_num_sims = [] # number of simulations per 
@@ -72,16 +71,17 @@ class MCTS:
             state.transition(is_print=False) # plays game out until the end and returns winner.id
         return state.get_winner().id
     
-    def back_propagate(self, node, outcome): # turn is WRONG! NEEDS TO BE FIXED
-        if outcome == self.id: # if mcts won
+    def back_propagate(self, node, outcome):
+        if outcome == self.id: # If mcts won
             reward = 1
         else:
             reward = 0
-        while node is not None:
+        while node is not None: # Full back propogation does not need to be implemented because search depth is capped at 1
             node.num_sims += 1
             node.num_wins += reward
             node = node.parent
-
+    
+    # Selects nodes using uct formula and simulates transitions until the time limit is depleated
     def search(self, time_limit = 0.05):
         t_start = time.process_time()
         self.expand(self.root, self.root_state)
@@ -91,7 +91,12 @@ class MCTS:
             outcome = self.roll_out(state)
             self.back_propagate(node, outcome)
             n_rollouts += 1
+        # Code used for recording how many roll outs are performed on average - commented out when not in use for performance reasons
+        # mcts_num_sims.append(n_rollouts)
+        # Note: len(mcts_num_sims) gives number of MCTS searches have been performed 
 
+    # Due to the nature of the uct formula used for selection, the best node is that which is simulated the most,
+    # not necessarily the node with the highest reward or reward to number of simulations ratio
     def best_move(self):
         if self.root_state.is_winner():
             raise Exception("Searching for terminal state!")
@@ -108,12 +113,12 @@ class MCTS:
         if self.root_state.is_winner():
             raise Exception("Searching for a terminal state!")
         
-        max_value = self.root.children[0].num_sims
+        max_val = self.root.children[0].num_sims
         for c in self.root.children:
-            if c.num_sims > max_value:
-                max_value = c.num_sims
-        max_nodes = [c for c in self.root.children if c.num_sims == max_value]
-        return random.choice(max_nodes).index
+            if c.num_sims > max_val:
+                max_val = c.num_sims
+        max_nodes = [c for c in self.root.children if c.num_sims == max_val]
+        return random.choice(max_nodes).index # The index in the list of actions available in a given state remains constant due to the deterministic nature of get_actions()
         
 
 class MCTSAgent(BaseAgent):
@@ -121,7 +126,7 @@ class MCTSAgent(BaseAgent):
         self.id = id
         self.name = "MCTS Agent"
 
-    def choice(self, state, msg=""):
+    def choice(self, state):
         if not state.players[self.id].check_player_in():
             return None
         mcts = MCTS(state, self.id)

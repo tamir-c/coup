@@ -1,5 +1,4 @@
 import random
-import sys, os
 from agent_config import *
 
 class Card(object):
@@ -27,9 +26,11 @@ class Deck(list):
             for j in range(3):
                 self.append(Card(i))
     
+    # Shuffles deck in place
     def shuffle(self):
         random.shuffle(self)
     
+    # Deals card to player, moving it from Deck to Player 
     def deal(self, player, times=1):
         if len(player.cards) >= 2:
             return
@@ -37,13 +38,15 @@ class Deck(list):
             if len(player.cards) < 2:
                 player.cards.append(self.pop(0))
     
+    # Deals specific character from the deck to a player, returning True if successful
     def deal_character(self, player, type):
         if len(player.cards) >= 2:
             return
         for i in range(len(self)):
             if self[i].type == type:
                 player.cards.append(self.pop(i))
-                break
+                return True
+        return False
             
 class Player(object):
     def __init__(self, id, num_players, coins=None, agent="random"):
@@ -62,6 +65,7 @@ class Player(object):
     def __repr__(self):
         return self.name
 
+    # Returns the number of active (non-showing) influences a player has
     def num_influences(self):
         count = 2
         if self.cards[0].showing:
@@ -70,6 +74,7 @@ class Player(object):
             count -= 1
         return count
     
+    # Returns a list of a players cards which are active, i.e. not showing
     def get_active_cards(self):
         active_cards = []
         for c in self.cards:
@@ -77,11 +82,13 @@ class Player(object):
                 active_cards.append(c)
         return active_cards
     
+    # Returns a list of the names of players cards which are active, e.g. ["Duke", "Contessa"]
     def get_active_action_characters(self):
         active_cards = self.get_active_cards()
         return [c.name for c in active_cards]
     
-    # deals cards of the same type to a player - used in mcts_uncertainty
+    # Deals cards of the same type to a player
+    # Used in mcts_uncertainty.py but defined here to avoid import loop
     def redeal_opponents(self, type):
         s0 = self.cards[0].showing
         s1 = self.cards[1].showing
@@ -170,13 +177,15 @@ class Action(object):
         self.blocked_by = blocked_by
         self.deck = deck
 
+    # Describes each action as a human-understandable string
     def __repr__(self):
         if self.target:
-            if self.name == "Steal":
+            if self.name == "Steal": # Steal is a special case which uses different phrasing 
                 return self.name + " from " + self.target.name
             return self.name + " " + self.target.name
         return self.name
-
+    
+    # Executes an action by calling the appropriate helper function
     def execute(self, success, is_print=True):
         if self.name == "Income":
             income(self.player, success, is_print=is_print)
@@ -193,6 +202,8 @@ class Action(object):
         elif self.name == "Exchange":
             exchange(self.player, self.deck, success, is_print=is_print)
 
+# The following block of functions check if an action between a player and a target is possible
+# Note: The actions which have no dedicated check function have no requirements apart from the actor being in which is checked in get_actions()
 def check_coup(player, target):
     if player.check_player_in() == False:
         return False
@@ -201,7 +212,6 @@ def check_coup(player, target):
     if player.coins < 7:
         return False
     return True
-
 def check_assassinate(player, target):
     if player.check_player_in() == False:
         return False
@@ -210,7 +220,6 @@ def check_assassinate(player, target):
     if player.coins < 3:
         return False
     return True
-
 def check_steal(player, target):
     if player.check_player_in() == False:
         return False
@@ -220,6 +229,7 @@ def check_steal(player, target):
         return False
     return True
 
+# The following block of functions execute the 8 types of action
 def income(player, success, is_print=True):
     if success:
         if is_print: print(player.name + " gains 1 coin through Income!")
@@ -267,6 +277,7 @@ def challenge_action(action, challenger):
     else:
         return challenger, action.player
 
+# Resolves counteraction challenge, returning (winner, loser)
 def challenge_counteraction(counteraction, challenger):
     names = []
     if counteraction.counteractor.cards[0].showing == False:
@@ -277,7 +288,7 @@ def challenge_counteraction(counteraction, challenger):
         return counteraction.counteractor, challenger
     return challenger, counteraction.counteractor
 
-# returns index of chosen element in list i.e. elements listed number - 1
+# Returns index of chosen element in list i.e. elements listed number - 1
 def choose_from_list(lst):
     length = len(lst)
     if length == 0:
@@ -293,6 +304,7 @@ def choose_from_list(lst):
             if int(c) in range(1, length+1):
                 return int(c)-1
 
+# Waits for user input to proceed code execution used to slow down output to stdout
 def press_to_continue():
     cont = False
     while not cont:

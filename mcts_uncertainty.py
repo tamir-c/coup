@@ -2,7 +2,6 @@ from copy import deepcopy
 from mcts import *
 from state import *
 from statistics import multimode
-import sys, os
         
 class MCTSUncertainty:
     def __init__(self, state, id):
@@ -10,10 +9,17 @@ class MCTSUncertainty:
             raise Exception("This agent only works for 3 player Coup")
         self.id = id
         self.root_state = deepcopy(state)
-        self.original_state = state
+        self.original_state = state # Used to return the chosen action. Returning an action belonging to a deepcopy of the original state as this would not work
 
-    def search(self, time_limit = 0.05):
+    # Searches for the best mcts action for a state for each possible card type between players,
+    # as an approximation to searching for every possible combination of two cards.
+    # Returns modal action, i.e. action that is most robust to the uncertainty of not knowing opponents influences
+    # Only implemented for 2 and 3 players only due to exponential search time
+    def search(self):
         # redeal opponents influences
+        # call MCTS search and get best action
+        # save best action
+        # return modal action
         best_actions = []
         state = deepcopy(self.root_state)
         if state.num_players == 2:
@@ -40,10 +46,6 @@ class MCTSUncertainty:
         index = random.choice(multimode(best_actions))
         return self.original_state.get_all_actions(self.id)[index]
 
-        # call MCTS search and get best action
-        # save best action
-        # return modal action
-
 class MCTSUncertaintyAgent(BaseAgent):
     def __init__(self, id):
         self.id = id
@@ -52,6 +54,5 @@ class MCTSUncertaintyAgent(BaseAgent):
     def choice(self, state):
         if not state.players[self.id].check_player_in():
             return None
-        mcts = MCTSUncertainty(state, self.id)
-        ret = mcts.search()
-        return ret
+        mcts_uncertainty = MCTSUncertainty(state, self.id)
+        return mcts_uncertainty.search()
