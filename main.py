@@ -6,6 +6,9 @@ from mcts_uncertainty import *
 from look_ahead import *
 import time
 
+# TODO FIX PRINTING BUGS!
+
+
 def main():
     battle = False
     num_players = 3 # default number of players
