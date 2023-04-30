@@ -95,19 +95,6 @@ class RandomBluffBias(object):
         if rand <= bias:
             return random.choice(bluffs)
         return random.choice(lst)
-    
-# class RandomNoChallengeAgent(object):
-#     def __init__(self, id):
-#         self.id = id
-#         self.name = "Random No Challenge Agent"
-
-#     def choice(self, list, state=None): # state should always be provided to this agent
-#         length = len(list)
-#         if length == 0:
-#             return None
-#         if state.stage == 1 or state.stage == 3:
-#             return None
-#         return random.choice(list)
 
 class RandomNoBluffNoChallengeAgent(object):
     def __init__(self, id):

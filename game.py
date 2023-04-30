@@ -99,15 +99,20 @@ class Player(object):
 
     # Removes one of the player's influences
     def lose_influence(self, is_print=True):
+        msg = ""
         inf = self.num_influences()
+        loss = 0
         if inf == 1:
             if self.cards[0].showing:
                 self.cards[1].showing = True
+                loss = 1
             else:
                 self.cards[0].showing = True
+            msg = f"{self.name} loses Influence 2 - {self.cards[loss]}, and is out of the game!"
         else: # The player loses influence 0 by default if they have two active influences
             self.cards[0].showing = True
-        if is_print: print(self.name + " loses an influence!")
+            msg = f"{self.name} loses Influence 1 - {self.cards[0]}, and has one remaining!"
+        if is_print: print(msg)
 
     def check_player_in(self):
         if self.num_influences() <= 0:
@@ -119,14 +124,14 @@ class ActionChallenge(object):
         self.action = action
         self.challenger = challenger
     def __repr__(self):
-        return self.challenger.name + " " + "challenges " + "'" + self.action.__repr__() + "'"
+        return f"{self.challenger.name} challenges '{self.action.__repr__()}'"
 
 class CounteractionChallenge(object):
     def __init__(self, counteraction, challenger):
         self.counteraction = counteraction
         self.challenger = challenger
     def __repr__(self):
-        return self.challenger.name + " " + "challenges " + "'" + self.counteraction.__repr__() + "'"
+        return f"{self.challenger.name} challenges '{self.counteraction.__repr__()}'"
 
 class Counteraction(object):
     def __init__(self, action, counteractor, claim):
@@ -134,7 +139,7 @@ class Counteraction(object):
         self.action = action
         self.claim = claim
     def __repr__(self):
-        return self.counteractor.name + " blocks " + self.action.__repr__() + " claiming " + self.claim
+        return f"{self.counteractor.name} counteracts '{self.action.__repr__()}' claiming {self.claim}"
 
 class Action(object):
     def __init__(self, action_name, player, deck, target=None):
@@ -181,8 +186,8 @@ class Action(object):
     def __repr__(self):
         if self.target:
             if self.name == "Steal": # Steal is a special case which uses different phrasing 
-                return self.name + " from " + self.target.name
-            return self.name + " " + self.target.name
+                return f"{self.name} from {self.target.name}"
+            return f"{self.name} {self.target.name}"
         return self.name
     
     # Executes an action by calling the appropriate helper function
@@ -232,34 +237,34 @@ def check_steal(player, target):
 # The following block of functions execute the 8 types of action
 def income(player, success, is_print=True):
     if success:
-        if is_print: print(player.name + " gains 1 coin through Income!")
+        if is_print: print(f"{player.name} gains 1 coin through Income!")
         player.coins += 1
 def foreign_aid(player, success, is_print=True):
     if success:
-        if is_print: print(player.name + " gains 2 coins through Foreign Aid!")
+        if is_print: print(f"{player.name} gains 2 coins through Foreign Aid!")
         player.coins += 2
 def coup(player, target, success, is_print=True):
     if success:
         player.coins -= 7
-        if is_print: print(player.name + " spends 7 coins to Coup!")
-        if is_print: print(player.name + " Coups " + target.name)
-        target.lose_influence(is_print) # change this to allow target to choose which card to give up
+        if is_print: print(f"{player.name} spends 7 coins to Coup!")
+        if is_print: print(f"{player.name} Coups {target.name}!")
+        target.lose_influence(is_print)
 def tax(player, success, is_print=True):
     if success:
-        if is_print: print(player.name + " collects 3 coins through tax!")
+        if is_print: print(f"{player.name} collects 3 coins through tax!")
         player.coins += 3
 def assassinate(player, target, success, is_print=True):
     player.coins -= 3
-    if is_print: print(player.name + " spends 3 coins to assassinate!")
+    if is_print: print(f"{player.name} spends 3 coins to assassinate!")
     if success:
-        if is_print: print(player.name + " assassinates " + target.name)
-        target.lose_influence(is_print) # change this to allow target to choose which card to give up
+        if is_print: print(f"{player.name} assassinates {target.name}!")
+        target.lose_influence(is_print)
 def steal(player, target, success, is_print=True):
     if success:
         coins_to_take = 2
         if target.coins == 1:
             coins_to_take = 1
-        if is_print: print(player.name + " steals " + str(coins_to_take) + " coins from " + target.name)
+        if is_print: print(f"{player.name} steals {coins_to_take} coins from {target.name}!")
         target.coins -= coins_to_take
         player.coins += coins_to_take
 def exchange(player, deck, success, is_print=True):

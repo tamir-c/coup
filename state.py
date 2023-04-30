@@ -219,7 +219,7 @@ class State(object):
                 if self.challenge: # if a player has challenged, break - only one player can challenge an action in a play
                     break
 
-            if is_print: print(f"Challenge taken: {self.challenge}")
+            if is_print: print(f"Challenge taken: {self.challenge}.")
             if human: press_to_continue()
             if self.challenge: # if a challenge has occured:
                 winner, loser = challenge_action(self.challenge.action, self.challenge.challenger) # handle challenge
@@ -249,7 +249,7 @@ class State(object):
                     if self.counteraction:
                         break
 
-                if is_print: print(f"Counteraction taken: {self.counteraction}")
+                if is_print: print(f"Counteraction taken: {self.counteraction}.")
                 if human: press_to_continue()
                 if not self.counteraction: # the action went unchallenged and no one counteracted so the action succeeds 
                     self.action.execute(success=True, is_print=is_print)
@@ -261,7 +261,7 @@ class State(object):
                         if self.counteraction_challenge:
                             break
 
-                    if is_print: print(f"Challenge to counteraction taken: {self.counteraction_challenge}")
+                    if is_print: print(f"Challenge to counteraction taken: {self.counteraction_challenge}.")
                     if human: press_to_continue()
                     if self.counteraction_challenge:
                         winner, loser = challenge_counteraction(self.counteraction_challenge.counteraction, self.counteraction_challenge.challenger) # handle challenge: if counteractor wins challenger loses influence 
