@@ -12,7 +12,7 @@ def generate_agent(id, agent):
     if agent == "human":
         return HumanAgent(id)
     if agent == "random_bluff_bias":
-        return RandomBluffBias(id)
+        return RandomBluffBiasAgent(id)
     if agent == "mcts":
         return MCTSAgent(id)
     if agent == "mcts_uncertainty":

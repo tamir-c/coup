@@ -22,8 +22,8 @@ def info():
     c = choose_from_list(["I confirm", "I can no longer participate in this experiment"])
     if c == 1:
         quit()
-    print("Before beginning, please carefully read the rules of Coup and refer to them throughout play: https://www.ultraboardgames.com/coup/game-rules.php")
-    print("Please note that the rules have been modified: playing the Ambassador's 'Exchange' action actually plays Tax")
+    print("Before beginning, please familiarise yourself with the rules of Coup and refer to them throughout play.")
+    print("Please note that the rules have been modified: playing the Ambassador's 'Exchange' action actually plays Tax.")
     press_to_continue()
     name = input("Please enter your full name: ")
     email = input("Please enter your email if you wish to receive a copy of the data saved. You will be sent a test email to verify it works which you can discard.\nEnsure email entered is valid or input nothing and simply press ENTER to continue: ")

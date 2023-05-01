@@ -125,6 +125,8 @@ class ActionChallenge(object):
         self.challenger = challenger
     def __repr__(self):
         return f"{self.challenger.name} challenges '{self.action.__repr__()}'"
+    def is_bluff(self):
+        return -2, -2
 
 class CounteractionChallenge(object):
     def __init__(self, counteraction, challenger):
@@ -132,6 +134,8 @@ class CounteractionChallenge(object):
         self.challenger = challenger
     def __repr__(self):
         return f"{self.challenger.name} challenges '{self.counteraction.__repr__()}'"
+    def is_bluff(self):
+        return -2, -2
 
 class Counteraction(object):
     def __init__(self, action, counteractor, claim):
@@ -140,6 +144,8 @@ class Counteraction(object):
         self.claim = claim
     def __repr__(self):
         return f"{self.counteractor.name} counteracts '{self.action.__repr__()}' claiming {self.claim}"
+    def is_bluff(self):
+        return -1, -1
 
 class Action(object):
     def __init__(self, action_name, player, deck, target=None):
@@ -181,6 +187,7 @@ class Action(object):
         self.action_character = action_character
         self.blocked_by = blocked_by
         self.deck = deck
+    
 
     # Describes each action as a human-understandable string
     def __repr__(self):
@@ -206,6 +213,15 @@ class Action(object):
             steal(self.player, self.target, success, is_print=is_print)
         elif self.name == "Exchange":
             exchange(self.player, self.deck, success, is_print=is_print)
+    
+    def is_bluff(self):
+        bluffable = 0
+        bluff = 0
+        if self.action_character != "General Action":
+            bluffable = 1
+            if not (self.action_character in self.player.get_active_action_characters()):
+                bluff = 1
+        return bluff, bluffable
 
 # The following block of functions check if an action between a player and a target is possible
 # Note: The actions which have no dedicated check function have no requirements apart from the actor being in which is checked in get_actions()

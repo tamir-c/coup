@@ -2,7 +2,10 @@ from copy import deepcopy
 from mcts import *
 from state import *
 from statistics import multimode
-        
+
+bluffs = []
+bluffable = []
+
 class MCTSUncertainty:
     def __init__(self, state, id):
         if not (state.num_players == 2 or state.num_players == 3):
@@ -44,7 +47,20 @@ class MCTSUncertainty:
                     mcts.search()
                     best_actions.append(mcts.best_move_index())
         index = random.choice(multimode(best_actions))
-        return self.original_state.get_all_actions(self.id)[index]
+        d = self.original_state.get_all_actions(self.id)[index]
+        # self.updateData(d)
+        return d
+    
+    def updateData(self, decision):
+        global num_bluffs
+        global num_bluffable
+        if decision == None:
+            return
+        a, b = decision.is_bluff()
+        if a == None or b == None:
+            return
+        if a: bluffs.append(a)
+        if b: bluffable.append(b)
 
 class MCTSUncertaintyAgent(BaseAgent):
     def __init__(self, id):

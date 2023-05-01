@@ -58,10 +58,10 @@ class RandomNoBluffAgent(object):
 
 # If "bluff" actions are available, the agent will choose a bluff action or non-bluff action with the probability given by "bias"
 # Within this, actions are taken randomly
-class RandomBluffBias(object):
+class RandomBluffBiasAgent(object):
     def __init__(self, id):
         self.id = id
-        self.name = "Random No Bluff Agent"
+        self.name = "Random Bluff Bias Agent"
 
     def choice(self, state, bias = 0.3): # bias: 0 never bluffs. 1 always bluffs.
         p = state.players[self.id]
