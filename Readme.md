@@ -3,7 +3,7 @@
 ## Instructions to run on Windows / Linux:
 - install Python3 (game developed and tested on Python 3.11.1 so use for best results)
 - run the command: 'git clone https://github.com/tamir-c/coup.gitgit' to clone with https, or 'git clone git@github.com:tamir-c/coup.git' to clone with ssh
-- open command prompt and cd to folder "coup" in your cloned copy of the code containing this readme and the source code
+- open command prompt / terminal and cd to folder "coup" in your cloned copy of the code containing this Readme and the source code
 - run the command: pip install tabulate
 - run the command: pip install numpy
 - run the command: python main.py
