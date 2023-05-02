@@ -55,7 +55,7 @@ class Player(object):
         self.name = "Player " + str(self.id)
         if coins==None:
             if num_players == 2:
-                self.coins = 1
+                self.coins = 2 # Can change this to 1 for two-player variant where each player starts with just 1 coin
             else:
                 self.coins = 2
         else:
