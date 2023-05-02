@@ -24,6 +24,25 @@ class RandomAgent(BaseAgent):
         elif state.stage == 3:
             return random.choice(state.get_counteraction_challenges(p))
 
+class RandomNoChallengeAgent(BaseAgent):
+    def __init__(self, id):
+        self.id = id
+        self.name = "Random No Challenge Agent"
+
+    def choice(self, state):
+        p = state.players[self.id]
+        if state.stage == 0:
+            if state.actor != self.id:
+                raise Exception("Error: it is not this agent's turn to choose an action!")
+            return random.choice(state.get_actions())
+        elif state.stage == 1:
+            return None
+        elif state.stage == 2:
+            return random.choice(state.get_counteractions(p))
+        elif state.stage == 3:
+            return None
+
+
 class RandomNoBluffAgent(object):
     def __init__(self, id):
         self.id = id

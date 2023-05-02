@@ -9,9 +9,9 @@ import time
 # Manually test different agents against each other over many games to assess which strategies win in the long run
 
 def main():
-    num_players = 2
+    num_players = 3
     iterations = 100 # Dictates how many games are played
-    agents = {0:"mcts_uncertainty", 1:"random"} # Dictates the strategy of player with index of key in state.players
+    agents = {0:"mcts_uncertainty", 1:"random_no_challenge", 2:"random_no_challenge"} # Dictates the strategy of player with index of key in state.players
 
     results = [0 for i in range(num_players)]
     t_start = time.perf_counter()

@@ -23,4 +23,6 @@ def generate_agent(id, agent):
         return IncomeAgent(id)
     if agent == "random_no_bluff_no_challenge":
         return RandomNoBluffNoChallengeAgent(id)
+    if agent == "random_no_challenge":
+        return RandomNoChallengeAgent(id)
     return RandomAgent(id)
