@@ -3,9 +3,8 @@ from copy import deepcopy
 from game import *
 import time
 from agent import *
-import sys, os
 
-la_num_sims = []
+# la_num_sims = []
 
 class NodeState:
     def __init__(self, state, actions):
@@ -71,8 +70,8 @@ class LookAhead:
                 i = 0
         self.run_time = time.process_time() - t_start
         
-        global la_num_sims
-        la_num_sims.append(self.root.num_sims)
+        # global la_num_sims
+        # la_num_sims.append(self.root.num_sims)
 
 
     def best_move(self):
